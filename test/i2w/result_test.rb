@@ -1,4 +1,4 @@
-require "test_helper"
+require 'test_helper'
 
 module I2w
   class ResultTest < ActiveSupport::TestCase
@@ -12,7 +12,7 @@ module I2w
       assert_equal :val, result.value
       assert_equal :val, result.value_or(:fallback)
       assert :val, result.then { |s| s }.success?
-      assert_equal "got: val", result.and_then { |s| "got: #{s}" }.value
+      assert_equal 'got: val', result.and_then { |s| "got: #{s}" }.value
     end
 
     test 'failure result' do

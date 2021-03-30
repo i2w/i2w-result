@@ -21,10 +21,9 @@ Gem::Specification.new do |s|
   # spec.metadata["source_code_uri"] = "TODO: Put your gem's public repo URL here."
   # spec.metadata["changelog_uri"] = "TODO: Put your gem's CHANGELOG.md URL here."
 
-  s.files = Dir['{app,config,db,lib}/**/*', 'MIT-LICENSE', 'Rakefile', 'README.md']
+  s.files = Dir['{lib}/**/*', 'MIT-LICENSE', 'Rakefile', 'README.md']
 
-  s.add_dependency 'activesupport', '~> 6.1.3'
-
-  s.add_development_dependency 'sqlite3'
-  s.add_development_dependency 'rails', '~> 6.1.3'
+  s.add_development_dependency 'activesupport', '>= 6'
+  # s.add_development_dependency 'minitest', '>= 5.14.4'
+  s.add_development_dependency 'rake', '>= 13.0.3'
 end
