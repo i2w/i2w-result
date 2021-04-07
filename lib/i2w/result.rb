@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require 'i2w/result/version'
-require 'i2w/result/success'
-require 'i2w/result/failure'
-require 'i2w/result/throw_match_dsl'
+require_relative 'result/version'
+require_relative 'result/success'
+require_relative 'result/failure'
+require_relative 'result/throw_match_dsl'
 
 module I2w
-  # Result monad methods
+  # Result monad methods
   module Result
     extend self
 

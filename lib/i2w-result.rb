@@ -1,3 +1,3 @@
 # frozen_string_literal: true
 
-require 'i2w/result'
+require_relative 'i2w/result'

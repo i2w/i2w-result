@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
 
   s.homepage    = 'https://github.com/i2w/result'
   s.summary     = 'A simple monadic result object'
-  s.description = 'i2w-result defines a simple monadic result, suitable for use with rails'
+  s.description = 'i2w-result defines a simple monadic result'
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
