@@ -29,7 +29,7 @@ module I2w
       end
 
       def deconstruct
-        [:failure, @failure, @errors.to_h]
+        [:failure, @failure, @errors.to_hash]
       end
 
       def and_then
