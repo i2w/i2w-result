@@ -33,8 +33,15 @@ module I2w
         [:success, @value]
       end
 
+      # return the result of yielding our value (as a Result)
       def and_then
         Result.to_result yield(@value)
+      end
+
+      # yield the block with our success value, ignoring the result (return self)
+      def and_tap
+        yield(@value)
+        self
       end
 
       def to_result

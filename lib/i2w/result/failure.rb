@@ -36,7 +36,7 @@ module I2w
         self
       end
 
-      def tap
+      def and_tap
         self
       end
 
