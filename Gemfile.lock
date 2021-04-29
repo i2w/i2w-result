@@ -16,6 +16,12 @@ GEM
     i18n (1.8.10)
       concurrent-ruby (~> 1.0)
     minitest (5.14.4)
+    minitest-autotest (1.1.1)
+      minitest-server (~> 1.0)
+      path_expander (~> 1.0)
+    minitest-server (1.0.6)
+      minitest (~> 5.0)
+    path_expander (1.1.0)
     rake (13.0.3)
     tzinfo (2.0.4)
       concurrent-ruby (~> 1.0)
@@ -27,6 +33,7 @@ PLATFORMS
 DEPENDENCIES
   activesupport (>= 6)
   i2w-result!
+  minitest-autotest
   rake (>= 13.0.3)
 
 BUNDLED WITH

@@ -28,6 +28,7 @@ module I2w
     def to_result(obj)
       obj.respond_to?(:to_result) ? obj.to_result : success(obj)
     end
+    alias [] to_result
 
     # yield the block using a simple #success #failure(*failures) DSL
     # return the result of the first matching block or raise NoMatchError

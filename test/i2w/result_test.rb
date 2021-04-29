@@ -78,5 +78,35 @@ module I2w
       assert_equal result_match(Result.failure(:db)), 'Failure: db'
       assert_raises(Result::NoMatchError) { result_match(Result.failure(:foo)) }
     end
+
+    test 'chaining syntax success' do
+      side_effects = []
+
+      actual = Result['80'].and_tap { side_effects << _1 }
+                           .and_then(&:to_i)
+                           .and_tap { side_effects << _1 }
+                           .and_then { Result[1 + _1] }
+                           .and_tap { side_effects << (_1 + 100) } # has no effect on the value
+                           .and_then { _1 / 9 }
+
+      assert actual.success?
+      assert_equal 9, actual.value
+      assert_equal ['80', 80, 181], side_effects
+    end
+
+    test 'chaining syntax failure' do
+      side_effects = []
+
+      actual = Result['80'].and_tap { side_effects << _1 }
+                           .and_then(&:to_i)
+                           .and_tap { side_effects << _1 }
+                           .and_then { Result.failure(:problem) }
+                           .and_tap { side_effects << (_1 + 100) } 
+                           .and_then { _1 / 9 }
+
+      refute actual.success?
+      assert_equal :problem, actual.failure
+      assert_equal ['80', 80], side_effects
+    end
   end
 end

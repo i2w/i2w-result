@@ -4,5 +4,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 # Specify your gem's dependencies in i2w-result.gemspec.
 gemspec
 
+gem 'minitest-autotest'
+
 # To use a debugger
 # gem 'byebug', group: [:development, :test]
