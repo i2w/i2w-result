@@ -52,12 +52,4 @@ module I2w
       end
     end
   end
-
-  def self.Result(*args, &block)
-    raise ArgumentError, 'pass either arguments, or a block, not both' if args.any? && block
-    
-    return Result.do(&block) if block
-
-    Result[*args]
-  end
 end

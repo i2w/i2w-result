@@ -2,7 +2,7 @@
 
 module I2w
   module Result
-    # represents a failure with failure code/symbol, and optional errors
+    # represents a failure with failure object/code/symbol, and optional errors
     class Failure
       attr_reader :failure, :errors
 
