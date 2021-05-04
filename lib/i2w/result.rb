@@ -4,6 +4,7 @@ require_relative 'result/version'
 require_relative 'result/success'
 require_relative 'result/failure'
 require_relative 'result/throw_match_dsl'
+require_relative 'result/throw_failure_dsl'
 
 module I2w
   # Result monad methods
@@ -32,11 +33,31 @@ module I2w
 
     # yield the block using a simple #success #failure(*failures) DSL
     # return the result of the first matching block or raise NoMatchError
-    def match(result)
+    def match(result, &block)
       catch do |found_match|
-        yield ThrowMatchDSL.new(found_match, result)
+        ThrowMatchDSL.new(found_match, result).instance_eval(&block)
         raise NoMatchError
       end
     end
+
+    # yield the block using a simple #value DSL which returns the value of the argument
+    # or returns from the block at that point with the failure monad.
+    # the return value of the block is returned as a Result.
+    # 
+    # (this is our version of 'do' notation)
+    def call(&block)
+      catch do |got_failure|
+        result = ThrowFailureDSL.new(got_failure).instance_eval(&block)
+        Result[result]
+      end
+    end
+  end
+
+  def self.Result(*args, &block)
+    raise ArgumentError, 'pass either arguments, or a block, not both' if args.any? && block
+    
+    return Result.do(&block) if block
+
+    Result[*args]
   end
 end

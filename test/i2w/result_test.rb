@@ -13,10 +13,10 @@ module I2w
       assert_equal :val, result.value_or(:fallback)
       assert :val, result.then { |s| s }.success?
       assert_equal 'got: val', result.and_then { |s| "got: #{s}" }.value
-      
+
       side_effects = []
       assert_equal :val, result.and_tap { |s| side_effects << "got: #{s}" }.value
-      assert_equal ["got: val"], side_effects
+      assert_equal ['got: val'], side_effects
     end
 
     test 'failure result' do
@@ -101,8 +101,44 @@ module I2w
                            .and_then(&:to_i)
                            .and_tap { side_effects << _1 }
                            .and_then { Result.failure(:problem) }
-                           .and_tap { side_effects << (_1 + 100) } 
+                           .and_tap { side_effects << (_1 + 100) }
                            .and_then { _1 / 9 }
+
+      refute actual.success?
+      assert_equal :problem, actual.failure
+      assert_equal ['80', 80], side_effects
+    end
+
+    test 'Result block syntax' do
+      side_effects = []
+
+      num = '80'
+      actual = Result.call do
+        side_effects << num
+        num = value Result[num.to_i]
+        side_effects << num
+        num = value Result[1 + num]
+        side_effects << (num + 100)
+        num / 9
+      end
+
+      assert actual.success?
+      assert_equal 9, actual.value
+      assert_equal ['80', 80, 181], side_effects
+    end
+
+    test 'Result do syntax with failure' do
+      side_effects = []
+
+      num = '80'
+      actual = Result.() do
+        side_effects << num
+        num = value Result[num.to_i]
+        side_effects << num
+        num = value Result.failure(:problem)
+        side_effects << (num + 100)
+        num / 9
+      end
 
       refute actual.success?
       assert_equal :problem, actual.failure
