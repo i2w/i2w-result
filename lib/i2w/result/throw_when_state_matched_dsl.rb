@@ -3,7 +3,7 @@
 module I2w
   module Result
     # initialized with throw token and a result, throws the first evaluated match block when one is found
-    class ThrowMatchDSL
+    class ThrowWhenStateMatchedDSL
       def initialize(found_match, result)
         @found_match = found_match
         @result = result

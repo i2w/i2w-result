@@ -3,8 +3,8 @@
 require_relative 'result/version'
 require_relative 'result/success'
 require_relative 'result/failure'
-require_relative 'result/throw_match_dsl'
-require_relative 'result/throw_failure_dsl'
+require_relative 'result/throw_when_state_matched_dsl'
+require_relative 'result/throw_when_value_failure_dsl'
 
 module I2w
   # Result monad methods
@@ -35,7 +35,7 @@ module I2w
     # return the result of the first matching block or raise NoMatchError
     def match(result, &block)
       catch do |found_match|
-        ThrowMatchDSL.new(found_match, result).instance_eval(&block)
+        ThrowWhenStateMatchedDSL.new(found_match, result).instance_eval(&block)
         raise NoMatchError
       end
     end
@@ -47,7 +47,7 @@ module I2w
     # (this is our version of 'do' notation)
     def call(&block)
       catch do |got_failure|
-        result = ThrowFailureDSL.new(got_failure).instance_eval(&block)
+        result = ThrowWhenValueFailureDSL.new(got_failure).instance_eval(&block)
         Result[result]
       end
     end

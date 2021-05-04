@@ -3,7 +3,7 @@
 module I2w
   module Result
     # initialized with throw token, throws the first #value call has a failure as its argument
-    class ThrowFailureDSL
+    class ThrowWhenValueFailureDSL
       def initialize(got_failure)
         @got_failure = got_failure
       end
