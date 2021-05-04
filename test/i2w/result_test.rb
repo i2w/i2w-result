@@ -25,8 +25,8 @@ module I2w
       refute result.success?
       assert result.failure?
       assert result.errors.empty?
-      assert_equal result.failure, :err
-      assert_equal result.value_or(:fallback), :fallback
+      assert_equal :err, result.failure
+      assert_equal :fallback, result.value_or(:fallback)
       assert_raises(Result::FailureTreatedAsSuccessError) { result.value }
       assert result.and_then { |s| "got: #{s}" }.failure?
 
@@ -38,7 +38,16 @@ module I2w
     test 'failure result with errors' do
       result = Result.failure(:input_invalid, { attribute: ['is required'] })
 
-      assert_equal result.errors, { attribute: ['is required'] }
+      assert_equal({ attribute: ['is required'] }, result.errors)
+    end
+
+    test 'failure object with errors' do
+      input = Object.new
+      input.singleton_class.define_method(:errors) { { attribute: ['is required'] } }
+
+      result = Result.failure(input)
+      assert_equal input, result.failure
+      assert_equal({ attribute: ['is required'] }, result.errors)
     end
 
     def pattern_match(result)

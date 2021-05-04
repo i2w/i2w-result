@@ -8,7 +8,7 @@ module I2w
 
       def initialize(failure, errors = nil)
         @failure = failure
-        @errors = errors || {}
+        @errors = errors || (failure.respond_to?(:errors) && failure.errors) || {}
         freeze
       end
 
