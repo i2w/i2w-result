@@ -5,20 +5,20 @@ module I2w
       extend ActiveSupport::Concern
 
       included do
-        prepend PrependMethods
+        prepend Methods
 
         def self.inherited(subclass)
           super
-          subclass.prepend PrependMethods
+          subclass.prepend Methods
         end
       end
 
       # create a throwaway object to evaluate the block in
       def self.call(&block)
-        Object.new.tap { |obj| obj.singleton_class.prepend(PrependMethods).define_method(:call, &block) }.call
+        Object.new.tap { _1.singleton_class.prepend(Methods).define_method(:call, &block) }.call
       end
 
-      module PrependMethods
+      module Methods
         def call(...)
           catch do |got_failure|
             @got_failure = got_failure
