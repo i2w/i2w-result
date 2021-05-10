@@ -153,5 +153,49 @@ module I2w
       assert_equal :problem, actual.failure
       assert_equal ['80', 80], side_effects
     end
+
+    class Foo
+      include Result::Call
+
+      def call(arg)
+        bar = value process_arg(arg)
+        "success: #{bar}"
+      end
+
+      def process_arg(arg)
+        return Result.success(arg) if arg == :bar
+
+        Result.failure(:must_be_bar)
+      end
+    end
+
+    class DowncaseFoo < Foo
+      def call(arg)
+        arg = value downcase(arg)
+        super(arg)
+      end
+
+      def downcase(arg)
+        return Result.failure(:must_not_be_baz) if arg == :baz
+        
+        Result[arg.to_s.downcase.to_sym]
+      end
+    end
+
+    test 'embedded call do syntax' do
+      assert Foo.new.call(:bar).success?
+      assert_equal 'success: bar', Foo.new.call(:bar).value
+
+      refute Foo.new.call(:baz).success?
+      assert_equal :must_be_bar, Foo.new.call(:baz).failure
+    end
+
+    test 'embedded call do syntax and inheritance' do
+      assert DowncaseFoo.new.call(:BAR).success?
+      assert_equal 'success: bar', DowncaseFoo.new.call(:bar).value
+
+      refute DowncaseFoo.new.call(:baz).success?
+      assert_equal :must_not_be_baz, DowncaseFoo.new.call(:baz).failure
+    end
   end
 end
