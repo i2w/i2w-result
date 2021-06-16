@@ -11,42 +11,25 @@ module I2w
         freeze
       end
 
-      def success?
-        true
-      end
+      def success? = true
 
-      def failure?
-        false
-      end
+      def failure? = false
 
-      def value_or(...)
-        @value
-      end
+      def value_or(...) = value
 
-      def failure; end
+      def failure = nil
 
-      def errors
-        {}
-      end
+      def errors = {}
 
-      def deconstruct
-        [:success, @value]
-      end
+      def deconstruct = [:success, value]
 
       # return the result of yielding our value (as a Result)
-      def and_then
-        Result.to_result yield(@value)
-      end
+      def and_then = Result.to_result(yield(value))
 
       # yield the block with our success value, ignoring the result (return self)
-      def and_tap
-        yield(@value)
-        self
-      end
+      def and_tap = tap { yield(value) }
 
-      def to_result
-        self
-      end
+      def to_result = self
     end
   end
 end

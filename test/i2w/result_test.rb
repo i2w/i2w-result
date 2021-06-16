@@ -124,9 +124,9 @@ module I2w
       num = '80'
       actual = Result.call do
         side_effects << num
-        num = value Result[num.to_i]
+        num = value! Result[num.to_i]
         side_effects << num
-        num = value Result[1 + num]
+        num = value! Result[1 + num]
         side_effects << (num + 100)
         num / 9
       end
@@ -142,9 +142,9 @@ module I2w
       num = '80'
       actual = Result.() do
         side_effects << num
-        num = value Result[num.to_i]
+        num = value! Result[num.to_i]
         side_effects << num
-        num = value Result.failure(:problem)
+        num = value! Result.failure(:problem)
         side_effects << (num + 100)
         num / 9
       end
@@ -158,7 +158,7 @@ module I2w
       include Result::Call
 
       def call(arg)
-        bar = value process_arg(arg)
+        bar = value! process_arg(arg)
         "success: #{bar}"
       end
 
@@ -171,7 +171,7 @@ module I2w
 
     class DowncaseFoo < Foo
       def call(arg)
-        arg = value downcase(arg)
+        arg = value! downcase(arg)
         super(arg)
       end
 

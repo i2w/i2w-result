@@ -13,7 +13,7 @@ module I2w
         end
       end
 
-      # create a throwaway object to evaluate the block in
+      # create a throwaway object to evaluate the block in, see I2w::Result.call
       def self.call(&block)
         Object.new.tap { _1.singleton_class.prepend(Methods).define_method(:call, &block) }.call
       end
@@ -26,7 +26,7 @@ module I2w
           end
         end
 
-        def value(result)
+        def value!(result)
           throw @got_failure, result if result.failure?
 
           result.value

@@ -17,35 +17,25 @@ module I2w
 
     class NoMatchError < Error; end
 
-    def success(...)
-      Success.new(...)
-    end
+    def success(...) = Success.new(...)
 
-    def failure(...)
-      Failure.new(...)
-    end
+    def failure(...) = Failure.new(...)
 
     # returns result if it can be coerced to result, otherwise wrap in Success monad
-    def to_result(obj)
-      obj.respond_to?(:to_result) ? obj.to_result : success(obj)
-    end
+    def to_result(obj) = obj.respond_to?(:to_result) ? obj.to_result : success(obj)
     alias [] to_result
 
     # yield the block using a simple #success #failure(*failures) DSL
     # return the result of the first matching block or raise NoMatchError
-    def match(result, &block)
-      Match.call(result, &block)
-    end
+    def match(result, &block) = Match.call(result, &block)
 
-    # yield the block using a simple #value DSL which returns the value of the argument
+    # yield the block using a simple #value! DSL which returns the value of the argument
     # or returns from the block at that point with the failure monad.
     # the return value of the block is returned as a Result.
     #
     # (this is our version of 'do' notation)
     #
     # To use this notation in a method body, include Result::Call
-    def call(&block)
-      Call.call(&block)
-    end
+    def call(&block) = Call.call(&block)
   end
 end

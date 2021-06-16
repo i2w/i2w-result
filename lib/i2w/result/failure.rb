@@ -12,37 +12,21 @@ module I2w
         freeze
       end
 
-      def success?
-        false
-      end
+      def success? = false
 
-      def failure?
-        true
-      end
+      def failure? = true
 
-      def value
-        raise FailureTreatedAsSuccessError, "#value called on Failure #{self}"
-      end
+      def value = raise(FailureTreatedAsSuccessError, "#value called on Failure #{self}")
 
-      def value_or(arg = nil)
-        block_given? ? yield : arg
-      end
+      def value_or(arg = nil) = block_given? ? yield : arg
 
-      def deconstruct
-        [:failure, @failure, @errors.to_hash]
-      end
+      def deconstruct = [:failure, @failure, @errors.to_hash]
 
-      def and_then
-        self
-      end
+      def and_then = self
 
-      def and_tap
-        self
-      end
+      def and_tap = self
 
-      def to_result
-        self
-      end
+      def to_result = self
     end
   end
 end
