@@ -4,7 +4,7 @@ require_relative 'result/version'
 require_relative 'result/success'
 require_relative 'result/failure'
 require_relative 'result/match'
-require_relative 'result/call'
+require_relative 'result/do_wrapper'
 
 module I2w
   # Result monad methods
@@ -35,7 +35,7 @@ module I2w
     #
     # (this is our version of 'do' notation)
     #
-    # To use this notation in a method body, include Result::Call
-    def call(&block) = Call.call(&block)
+    # To use this notation in a method body, include Result::DoWrapper
+    def do(&block) = DoWrapper.do(&block)
   end
 end

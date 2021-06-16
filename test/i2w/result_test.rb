@@ -118,11 +118,11 @@ module I2w
       assert_equal ['80', 80], side_effects
     end
 
-    test 'Result block syntax' do
+    test 'Result do syntax' do
       side_effects = []
 
       num = '80'
-      actual = Result.call do
+      actual = Result.do do
         side_effects << num
         num = value! Result[num.to_i]
         side_effects << num
@@ -140,7 +140,7 @@ module I2w
       side_effects = []
 
       num = '80'
-      actual = Result.() do
+      actual = Result.do do
         side_effects << num
         num = value! Result[num.to_i]
         side_effects << num
@@ -155,7 +155,7 @@ module I2w
     end
 
     class Foo
-      include Result::Call
+      include Result::DoWrapper
 
       def call(arg)
         bar = value! process_arg(arg)
@@ -182,7 +182,7 @@ module I2w
       end
     end
 
-    test 'embedded call do syntax' do
+    test 'embedded do syntax' do
       assert Foo.new.call(:bar).success?
       assert_equal 'success: bar', Foo.new.call(:bar).value
 
@@ -190,7 +190,7 @@ module I2w
       assert_equal :must_be_bar, Foo.new.call(:baz).failure
     end
 
-    test 'embedded call do syntax and inheritance' do
+    test 'embedded do syntax and inheritance' do
       assert DowncaseFoo.new.call(:BAR).success?
       assert_equal 'success: bar', DowncaseFoo.new.call(:bar).value
 
