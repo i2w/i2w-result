@@ -26,7 +26,7 @@ module I2w
       # return the result of yielding our value (as a Result)
       def and_then = Result.to_result(yield(value))
 
-      # yield the block with our success value, ignoring the result (return self)
+      # return self, but yield the block with our success value
       def and_tap = tap { yield(value) }
 
       def to_result = self

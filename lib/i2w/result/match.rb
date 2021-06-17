@@ -4,16 +4,16 @@ module I2w
   module Result
     class Match
       def self.call(result)
-        catch do |found_match|
-          yield DSL.new(found_match, result)
+        catch do |tok|
+          yield DSL.new(tok, result)
           raise NoMatchError
         end
       end
 
       # initialized with throw token and a result, throws the first evaluated match block when one is found
       class DSL
-        def initialize(found_match, result)
-          @found_match = found_match
+        def initialize(tok, result)
+          @found_match = tok
           @result = result
         end
 

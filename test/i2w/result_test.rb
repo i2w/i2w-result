@@ -122,11 +122,11 @@ module I2w
       side_effects = []
 
       num = '80'
-      actual = Result.do do
+      actual = Result.do do |r|
         side_effects << num
-        num = value! Result[num.to_i]
+        num = r.value! Result[num.to_i]
         side_effects << num
-        num = value! Result[1 + num]
+        num = r.value! Result[1 + num]
         side_effects << (num + 100)
         num / 9
       end
@@ -140,11 +140,11 @@ module I2w
       side_effects = []
 
       num = '80'
-      actual = Result.do do
+      actual = Result.do do |r|
         side_effects << num
-        num = value! Result[num.to_i]
+        num = r.value! Result[num.to_i]
         side_effects << num
-        num = value! Result.failure(:problem)
+        num = r.value! Result.failure(:problem)
         side_effects << (num + 100)
         num / 9
       end
@@ -155,7 +155,12 @@ module I2w
     end
 
     class Foo
-      include Result::DoWrapper
+      prepend Result::Do
+
+      def self.inherited(subclass)
+        super
+        subclass.prepend(Result::Do)
+      end
 
       def call(arg)
         bar = value! process_arg(arg)
@@ -177,7 +182,7 @@ module I2w
 
       def downcase(arg)
         return Result.failure(:must_not_be_baz) if arg == :baz
-        
+
         Result[arg.to_s.downcase.to_sym]
       end
     end
