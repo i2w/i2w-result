@@ -36,6 +36,6 @@ module I2w
     # (this is our version of 'do' notation)
     #
     # To use this notation in a method body, include Result::DoWrapper
-      def do(...) = Do.call(...)
+    def do(&block) = Do.call(&block)
   end
 end
