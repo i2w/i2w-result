@@ -27,6 +27,8 @@ module I2w
       assert result.errors.empty?
       assert_equal :err, result.failure
       assert_equal :fallback, result.value_or(:fallback)
+      assert_equal :fallback, result.value_or { :fallback }
+      assert_equal [:err, :fallback], result.value_or { [_1.failure, :fallback] }
       assert_raises(Result::FailureTreatedAsSuccessError) { result.value }
       assert result.and_then { |s| "got: #{s}" }.failure?
 

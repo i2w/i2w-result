@@ -18,7 +18,7 @@ module I2w
 
       def value = raise(FailureTreatedAsSuccessError, "#value called on Failure #{self}")
 
-      def value_or(arg = nil) = block_given? ? yield : arg
+      def value_or(arg = nil) = block_given? ? yield(self) : arg
 
       def deconstruct = [:failure, @failure, @errors.to_hash]
 
