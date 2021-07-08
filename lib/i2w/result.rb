@@ -21,8 +21,8 @@ module I2w
 
     def failure(...) = Failure.new(...)
 
-    def try
-      Success.new yield
+    def wrap
+      Success.new(yield)
     rescue StandardError => e
       Failure.new e, { message: e.message }
     end
