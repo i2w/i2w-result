@@ -37,6 +37,17 @@ module I2w
       assert_equal [], side_effects
     end
 
+    test 'try' do
+      result = Result.try { 1 + 3 }
+
+      assert_equal 4, result.value
+
+      result = Result.try { 1 / 0 }
+
+      assert result.failure.is_a?(ZeroDivisionError)
+      assert_equal({ :message => "divided by 0" }, result.errors)
+    end
+
     test 'failure result with errors' do
       result = Result.failure(:input_invalid, { attribute: ['is required'] })
 

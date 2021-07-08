@@ -21,6 +21,12 @@ module I2w
 
     def failure(...) = Failure.new(...)
 
+    def try
+      Success.new yield
+    rescue StandardError => e
+      Failure.new e, { message: e.message }
+    end
+
     # returns result if it can be coerced to result, otherwise wrap in Success monad
     def to_result(obj) = obj.respond_to?(:to_result) ? obj.to_result : success(obj)
     alias [] to_result
