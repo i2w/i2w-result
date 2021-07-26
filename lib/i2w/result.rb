@@ -5,6 +5,7 @@ require_relative 'result/success'
 require_relative 'result/failure'
 require_relative 'result/match'
 require_relative 'result/do'
+require_relative 'result/hash_result'
 
 module I2w
   # Result monad methods
@@ -41,7 +42,12 @@ module I2w
     #
     # (this is our version of 'do' notation)
     #
-    # To use this notation in a method body, include Result::DoWrapper
+    # To use this notation in a #call method body, prepend Result::Do
     def do(&block) = Do.call(&block)
+
+    # yield the block to Result::HashResult, which returns a Result::HashResult (a result monad with multiple values)
+    # By default, the first failure added to the hash will cause the block to return early (like 'do' notation)
+    # If no block is given, return an empty Result::HashResult (which can have multiple failures added to it)
+    def hash_result(&block) = HashResult.call(&block)
   end
 end

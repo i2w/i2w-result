@@ -215,5 +215,79 @@ module I2w
       refute DowncaseFoo.new.call(:baz).success?
       assert_equal :must_not_be_baz, DowncaseFoo.new.call(:baz).failure
     end
+
+    test 'hash_result failure' do
+      actual = Result.hash_result do |h|
+        h[:foo] = "FOO"
+        h[:bar] = Result.success("BAR")
+        h[:baz] = Result.failure("BAZ", [error: "No Baz!"])
+        h[:faz] = "FAZ" # not added
+        raise 'this will not be reached'
+      end
+
+      refute actual.success?
+      assert actual.failure?
+
+      assert actual.success?(:foo)
+      refute actual.failure?(:foo)
+      assert actual.failure?(:baz)
+      refute actual.success?(:baz)
+
+      assert_equal({ foo: "FOO", bar: "BAR" }, actual.successes)
+      assert_equal({ baz: "BAZ" }, actual.failures)
+      assert_equal({ foo: "FOO", bar: "BAR", baz: "BAZ"}, actual.failure)
+
+      assert_raise(Result::FailureTreatedAsSuccessError) { actual.value }
+      assert_raise(Result::FailureTreatedAsSuccessError) { actual.to_h }
+      assert_raise(Result::FailureTreatedAsSuccessError) { actual.to_hash }
+
+      assert_equal([error: 'No Baz!'], actual.errors)
+    end
+
+    test 'hash_result success' do
+      actual = Result.hash_result do |h|
+        h[:foo] = "FOO"
+        h[:bar] = Result.success("BAR")
+      end
+
+      assert actual.success?
+      refute actual.failure?
+
+      assert actual.success?(:foo)
+      refute actual.failure?(:foo)
+      assert actual.success?(:bar)
+      refute actual.failure?(:bar)
+
+      assert_equal({ foo: "FOO", bar: "BAR" }, actual.successes)
+      assert_equal({}, actual.failures)
+      assert_nil actual.failure
+
+      assert_equal({ foo: "FOO", bar: "BAR" }, actual.value)
+      assert_equal({ foo: "FOO", bar: "BAR" }, actual.to_h)
+      assert_equal({ foo: "FOO", bar: "BAR" }, actual.to_hash)
+
+      assert actual.errors.empty?
+    end
+
+    test "hash_result[left, right]= stores success on left, failure on right" do
+      actual = Result.hash_result do |h|
+        h[:success, :failure] = 'Success!'
+        h[:success, :failure] = Result.failure('Failure!')
+        raise 'this will not be reached'
+      end
+
+      assert_equal({ success: 'Success!', failure: 'Failure!'}, actual.failure)
+    end
+
+    test "hash_result with no block returns HashResult" do
+      actual = Result.hash_result
+
+      actual[:f1] = Result.failure(1)
+      actual[:f2] = Result.failure(2)
+      actual[:s3] = Result.success(3)
+
+      assert_equal({ f1: 1, f2: 2, s3: 3}, actual.failure)
+      assert_equal({ f1: 1, f2: 2 }, actual.failures)
+    end
   end
 end
