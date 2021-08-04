@@ -279,12 +279,19 @@ module I2w
       assert_equal({ success: 'Success!', failure: 'Failure!'}, actual.failure)
     end
 
-    test "hash_result with no block returns HashResult" do
+    test "hash_result with no args returns HashResult with no early return on failure (because no block)" do
       actual = Result.hash_result
 
       actual[:f1] = Result.failure(1)
       actual[:f2] = Result.failure(2)
       actual[:s3] = Result.success(3)
+
+      assert_equal({ f1: 1, f2: 2, s3: 3}, actual.failure)
+      assert_equal({ f1: 1, f2: 2 }, actual.failures)
+    end
+
+    test "hash_result with hash arg returns HashResult for arg" do
+      actual = Result.hash_result(f1: Result.failure(1), f2: Result.failure(2), s3: Result.success(3))
 
       assert_equal({ f1: 1, f2: 2, s3: 3}, actual.failure)
       assert_equal({ f1: 1, f2: 2 }, actual.failures)

@@ -6,11 +6,11 @@ module I2w
     # Can be used inside a catch block to exit on the first setting of a failure result,
     # enable this functionality do this by passing a throw_token
     class HashResult
-      def self.call
-        return new unless block_given?
+      def self.call(hash_arg = {})
+        return new(initial_hash: hash_arg) unless block_given?
 
         catch do |token|
-          result = new(token)
+          result = new(throw_token: token, initial_hash: hash_arg)
           yield result
           result
         end
@@ -18,9 +18,10 @@ module I2w
 
       NoArg = Object.new.freeze
 
-      def initialize(throw_token = nil)
+      def initialize(throw_token: nil, initial_hash: {})
         @throw_token = throw_token
         @hash = {}
+        initial_hash.each { set(_1, _2) }
       end
 
       # return the successful value of the result at the key, raises ValueCalledOnFailure if it is a failure

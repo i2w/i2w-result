@@ -48,6 +48,6 @@ module I2w
     # yield the block to Result::HashResult, which returns a Result::HashResult (a result monad with multiple values)
     # By default, the first failure added to the hash will cause the block to return early (like 'do' notation)
     # If no block is given, return an empty Result::HashResult (which can have multiple failures added to it)
-    def hash_result(&block) = HashResult.call(&block)
+    def hash_result(...) = HashResult.call(...)
   end
 end
