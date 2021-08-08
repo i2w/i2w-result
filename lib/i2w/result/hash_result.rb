@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'methods'
+
 module I2w
   module Result
     # A Result object that stores a bunch on results.  If any is a failure, the whole is a failure
@@ -16,7 +18,7 @@ module I2w
         end
       end
 
-      NoArg = Object.new.freeze
+      include Methods
 
       def initialize(throw_token: nil, initial_hash: {})
         @throw_token = throw_token
@@ -41,8 +43,6 @@ module I2w
         throw @throw_token, self if result.failure? && @throw_token
       end
 
-      def to_result = self
-
       # is the result at the key a failure? or if no key given, does the hash contain a failure?
       def failure?(key = NoArg) = key.eql?(NoArg) ? @hash.values.any?(&:failure?) : @hash.fetch(key).failure?
 
@@ -66,12 +66,6 @@ module I2w
 
       # returns the errors for the first failure
       def errors = failure? ? @hash.values.detect(&:failure?).errors : {}
-
-      def value_or = success? ? value : yield
-
-      def and_then = success? ? Result.to_result(yield(value)) : self
-
-      def and_tap = success? ? tap { yield(value) } : self
     end
   end
 end
