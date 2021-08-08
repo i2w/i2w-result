@@ -66,6 +66,12 @@ module I2w
 
       # returns the errors for the first failure
       def errors = failure? ? @hash.values.detect(&:failure?).errors : {}
+
+      def value_or = success? ? value : yield
+
+      def and_then = success? ? Result.to_result(yield(value)) : self
+
+      def and_tap = success? ? tap { yield(value) } : self
     end
   end
 end

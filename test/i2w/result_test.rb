@@ -11,7 +11,7 @@ module I2w
       assert result.failure.nil?
       assert_equal :val, result.value
       assert_equal :val, result.value_or(:fallback)
-      assert :val, result.then { |s| s }.success?
+      assert result.and_then { |s| s }.success?
       assert_equal 'got: val', result.and_then { |s| "got: #{s}" }.value
 
       side_effects = []
@@ -241,6 +241,20 @@ module I2w
       assert_raise(Result::FailureTreatedAsSuccessError) { actual.to_h }
       assert_raise(Result::FailureTreatedAsSuccessError) { actual.to_hash }
 
+      side_effect = nil
+      assert actual.and_then { side_effect = :hi }.failure?
+      assert_nil side_effect
+
+      side_effect = nil
+      refute actual.and_then { side_effect = :hi }.success?
+      assert_nil side_effect
+
+      side_effect = nil
+      assert actual.and_tap { side_effect = :hi }.failure?
+      assert_nil side_effect
+
+      assert_equal :fail, actual.value_or { :fail }
+
       assert_equal([error: 'No Baz!'], actual.errors)
     end
 
@@ -265,6 +279,17 @@ module I2w
       assert_equal({ foo: "FOO", bar: "BAR" }, actual.value)
       assert_equal({ foo: "FOO", bar: "BAR" }, actual.to_h)
       assert_equal({ foo: "FOO", bar: "BAR" }, actual.to_hash)
+
+      side_effect = nil
+      refute actual.and_then { side_effect = :hi }.failure?
+      assert_equal :hi, side_effect
+
+      actual = actual.and_tap { side_effect = :hi }
+      assert_equal({ foo: "FOO", bar: "BAR" }, actual.value)
+      assert_equal :hi, side_effect
+
+      actual = actual.and_then { :hi }
+      assert :hi, actual.value
 
       assert actual.errors.empty?
     end
