@@ -13,6 +13,7 @@ module I2w
       assert_equal :val, result.value_or(:fallback)
       assert result.and_then { |s| s }.success?
       assert_equal 'got: val', result.and_then { |s| "got: #{s}" }.value
+      assert_equal 'got: val', result.on_success { "got: #{_1.value}" }.on_failure { "nope out: #{_1.failure}" }.value
 
       side_effects = []
       assert_equal :val, result.and_tap { |s| side_effects << "got: #{s}" }.value
@@ -31,6 +32,7 @@ module I2w
       assert_equal [:err, :fallback], result.value_or { [_1.failure, :fallback] }
       assert_raises(Result::FailureTreatedAsSuccessError) { result.value }
       assert result.and_then { |s| "got: #{s}" }.failure?
+      assert_equal 'nope out: err', result.on_success { "got: #{_1.value}" }.on_failure { "nope out: #{_1.failure}" }.value
 
       side_effects = []
       assert result.and_tap { |s| side_effects << "got: #{s}" }.failure?
