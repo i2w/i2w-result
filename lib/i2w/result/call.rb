@@ -17,6 +17,8 @@ module I2w
 
       def failure(...) = Result.failure(...)
 
+      def wrap(...) = Result.wrap(...)
+
       attr_reader :result
     end
   end

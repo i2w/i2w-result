@@ -13,9 +13,9 @@ module I2w
 
       def and_tap = success? ? tap { yield(value) } : self
 
-      def on_success = success? ? Result.to_result(yield(self)) : self
+      def with_success = success? ? Result.to_result(yield(self)) : self
 
-      def on_failure = success? ? self : Result.to_result(yield(self))
+      def with_failure = success? ? self : Result.to_result(yield(self))
 
       def to_result = self
     end
