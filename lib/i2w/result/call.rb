@@ -20,6 +20,13 @@ module I2w
       def wrap(...) = Result.wrap(...)
 
       attr_reader :result
+
+      module PrependToSubclasses
+        def inherited(subclass)
+          super
+          subclass.prepend(Call)
+        end
+      end
     end
   end
 end
