@@ -4,6 +4,8 @@ require_relative 'result/version'
 require_relative 'result/match'
 require_relative 'result/do'
 require_relative 'result/hash_result'
+require_relative 'result/open_result'
+require_relative 'result/call'
 
 module I2w
   # Result monad
@@ -17,6 +19,8 @@ module I2w
       # By default, the first failure added to the hash will cause the block to return early (like 'do' notation)
       # If no block is given, return an empty Result::HashResult (which can have multiple failures added to it)
       def hash_result(...) = HashResult.call(...)
+
+      def open_result(...) = OpenResult.call(...)
 
       # yield the block, and return success, but if any exceptions occur return a failure wrapping the exception
       def wrap

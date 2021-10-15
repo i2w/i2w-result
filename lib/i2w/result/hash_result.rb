@@ -8,22 +8,28 @@ module I2w
     # Can be used inside a catch block to exit on the first setting of a failure result,
     # enable this functionality do this by passing a throw_token
     class HashResult
-      def self.call(hash_arg = {})
-        return new(initial_hash: hash_arg) unless block_given?
+      def self.call(hash_arg = {}, &block)
+        return new(initial_hash: hash_arg) unless block
 
-        catch do |token|
-          result = new(throw_token: token, initial_hash: hash_arg)
-          yield result
-          result
-        end
+        new(initial_hash: hash_arg).stop_on_first_failure(&block)
       end
 
       include Methods
 
-      def initialize(throw_token: nil, initial_hash: {})
-        @throw_token = throw_token
+      def initialize(initial_hash: {})
         @hash = {}
         initial_hash.each { set(_1, _2) }
+      end
+
+      def stop_on_first_failure
+        catch do |token|
+          prev_throw_token, @throw_token = @throw_token, token
+          @throw_token = token
+          yield self
+        ensure
+          @throw_token = prev_throw_token
+        end
+        self
       end
 
       # return the successful value of the result at the key, raises ValueCalledOnFailure if it is a failure
@@ -40,7 +46,7 @@ module I2w
         key = failure_key if result.failure? && failure_key != NoArg
         @hash[key] = result
       ensure
-        throw @throw_token, self if result.failure? && @throw_token
+        throw @throw_token if result.failure? && @throw_token
       end
 
       # is the result at the key a failure? or if no key given, does the hash contain a failure?

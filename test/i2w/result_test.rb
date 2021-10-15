@@ -323,5 +323,60 @@ module I2w
       assert_equal({ f1: 1, f2: 2, s3: 3}, actual.failure)
       assert_equal({ f1: 1, f2: 2 }, actual.failures)
     end
+
+    test "open_result success" do
+      actual = Result.open_result do |r|
+        r.foo = Result.success(:foo)
+      end
+      assert actual.success?
+      assert_equal :foo, actual[:foo]
+      assert_equal :foo, actual.value[:foo]
+      assert_equal({ foo: :foo }, actual.to_h)
+      assert_equal :foo, actual.foo
+    end
+
+    test "open_result failure" do
+      actual = Result.open_result do |r|
+        r.foo = Result.failure(:foo)
+      end
+      assert actual.failure?
+      assert_equal :foo, actual.failures[:foo]
+      assert_raise(Result::FailureTreatedAsSuccessError) { actual.foo }
+    end
+
+    test "open_result left, right syntax" do
+      actual = Result.open_result do |r|
+        r[:foo, :bar] = Result.failure(:foo)
+      end
+
+      assert actual.failure?
+      assert_raise(Result::FailureTreatedAsSuccessError) { actual.bar }
+      assert_equal :foo, actual.failures[:bar]
+    end
+
+    class ReturnResult
+      prepend Result::Call
+
+      def call(arg)
+        result.arg = arg
+        result[:yes, :no] = arg == :foo ? success(arg) : failure(arg)
+        result.last = success(:finished)
+      end
+    end
+
+    test "ReturnResult class returns OpenResult, and stop on first failure" do
+      actual = ReturnResult.new.call(:foo)
+      assert actual.success?
+      assert_equal :foo, actual.arg
+      assert_equal :foo, actual.yes
+      assert_equal :finished, actual.last
+      assert_equal({ arg: :foo, yes: :foo, last: :finished }, actual.value)
+
+      actual = ReturnResult.new.call(:bar)
+      assert actual.failure?
+      assert_equal({ arg: :bar }, actual.successes)
+      assert_equal({ no: :bar }, actual.failures)
+      assert_equal({ arg: :bar, no: :bar }, actual.failure)
+    end
   end
 end
