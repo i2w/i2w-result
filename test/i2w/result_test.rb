@@ -355,12 +355,14 @@ module I2w
     end
 
     class ReturnResult
-      prepend Result::Call
+      include Result::SetResult
 
-      def call(arg)
+      def set_result(result, arg)
         result.arg = arg
         result[:yes, :no] = arg == :foo ? success(arg) : failure(arg)
         result.last = success(:finished)
+
+        side_effects = [] # return value of set_result is ignored
       end
     end
 

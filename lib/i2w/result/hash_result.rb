@@ -5,13 +5,12 @@ require_relative 'methods'
 module I2w
   module Result
     # A Result object that stores a bunch on results.  If any is a failure, the whole is a failure
-    # Can be used inside a catch block to exit on the first setting of a failure result,
-    # enable this functionality do this by passing a throw_token
+    # Can be used inside a catch block to exit on the first setting of a failure result, see #stop_on_failure
     class HashResult
       def self.call(hash_arg = {}, &block)
         return new(initial_hash: hash_arg) unless block
 
-        new(initial_hash: hash_arg).stop_on_first_failure(&block)
+        new(initial_hash: hash_arg).stop_on_failure(&block)
       end
 
       include Methods
@@ -21,7 +20,7 @@ module I2w
         initial_hash.each { set(_1, _2) }
       end
 
-      def stop_on_first_failure
+      def stop_on_failure
         catch do |token|
           prev_throw_token, @throw_token = @throw_token, token
           @throw_token = token

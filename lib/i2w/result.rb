@@ -5,7 +5,7 @@ require_relative 'result/match'
 require_relative 'result/do'
 require_relative 'result/hash_result'
 require_relative 'result/open_result'
-require_relative 'result/call'
+require_relative 'result/set_result'
 
 module I2w
   # Result monad
