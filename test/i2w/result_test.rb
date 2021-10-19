@@ -372,13 +372,15 @@ module I2w
       assert_equal :foo, actual.arg
       assert_equal :foo, actual.yes
       assert_equal :finished, actual.last
-      assert_equal({ arg: :foo, yes: :foo, last: :finished }, actual.value)
+      assert_equal(OpenStruct.new(arg: :foo, yes: :foo, last: :finished), actual.value)
+      assert_equal({ arg: :foo, yes: :foo, last: :finished }, actual.value.to_h)
 
       actual = ReturnResult.new.call(:bar)
       assert actual.failure?
       assert_equal({ arg: :bar }, actual.successes)
       assert_equal({ no: :bar }, actual.failures)
-      assert_equal({ arg: :bar, no: :bar }, actual.failure)
+      assert_equal(OpenStruct.new(arg: :bar, no: :bar), actual.failure)
+      assert_equal({ arg: :bar, no: :bar }, actual.failure.to_h)
     end
   end
 end

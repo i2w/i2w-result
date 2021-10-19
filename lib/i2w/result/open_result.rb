@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'hash_result'
+require 'ostruct'
 
 module I2w
   module Result
@@ -10,11 +11,9 @@ module I2w
     #     r.user              = repo(User).find(id: user_id)
     #     r[:comment, :input] = repo(Comment).create(user_id: r.user.id, input: input)
     #   end
+    #
+    # #value and #failure both return OpenStructs
     class OpenResult < HashResult
-      def respond_to_missing?(method, *)
-        @hash.key?(method) || method.to_s[-1] == '='
-      end
-
       def method_missing(method, *args)
         last = method.to_s[-1]
         if last == '=' && args.length == 1
@@ -25,6 +24,10 @@ module I2w
           super
         end
       end
+
+      def value = OpenStruct.new(super)
+
+      def failure = OpenStruct.new(super)
     end
   end
 end
