@@ -359,8 +359,8 @@ module I2w
 
       def set_result(result, arg)
         result.arg = arg
-        result[:yes, :no] = arg == :foo ? success(arg) : failure(arg)
-        result.last = success(:finished)
+        result[:yes, :no] = arg == :foo ? Result.success(arg) : Result.failure(arg)
+        result.last = Result.success(:finished)
 
         side_effects = [] # return value of set_result is ignored
       end
@@ -374,6 +374,7 @@ module I2w
       assert_equal :finished, actual.last
       assert_equal(OpenStruct.new(arg: :foo, yes: :foo, last: :finished), actual.value)
       assert_equal({ arg: :foo, yes: :foo, last: :finished }, actual.value.to_h)
+      assert_equal({ arg: :foo, yes: :foo, last: :finished }, actual.to_h)
 
       actual = ReturnResult.new.call(:bar)
       assert actual.failure?

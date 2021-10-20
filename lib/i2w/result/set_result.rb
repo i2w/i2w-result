@@ -5,9 +5,7 @@ module I2w
     # failure will exit early
     module SetResult
       def call(...)
-        OpenResult.call do |result|
-          set_result(result, ...)
-        end
+        OpenResult.call { |result| set_result(result, ...) }
       end
 
       private
@@ -15,12 +13,6 @@ module I2w
       def set_result(result, ...)
         raise NotImplementedError, 'implement #set_result(result, ...)'
       end
-
-      def success(...) = Result.success(...)
-
-      def failure(...) = Result.failure(...)
-
-      def wrap(...) = Result.wrap(...)
     end
   end
 end
