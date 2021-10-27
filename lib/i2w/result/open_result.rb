@@ -12,7 +12,7 @@ module I2w
     #     r[:comment, :input] = repo(Comment).create(user_id: r.user.id, input: input)
     #   end
     #
-    # #value and #failure both return OpenStructs
+    # #value, #failure, #successes, #failures all return frozen Hash like objects that also allow method access
     class OpenResult < HashResult
       def method_missing(method, *args)
         last = method.to_s[-1]
@@ -25,9 +25,24 @@ module I2w
         end
       end
 
-      def value = OpenStruct.new(super)
+      def value = Value.new(super)
 
-      def failure = OpenStruct.new(super)
+      def failure = Value.new(super)
+
+      def failures = Value.new(super)
+
+      def successes = Value.new(super)
+
+      class Value < Hash
+        def initialize(hash)
+          merge!(hash)
+          freeze
+        end
+
+        def respond_to_missing?(method, ...) = key?(method)
+
+        def method_missing(method, *args) = (key?(method) && args.none?) ? self[method] : super
+      end
     end
   end
 end

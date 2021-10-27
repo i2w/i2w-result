@@ -331,16 +331,27 @@ module I2w
       assert actual.success?
       assert_equal :foo, actual[:foo]
       assert_equal :foo, actual.value[:foo]
+      assert_equal :foo, actual.value.foo
       assert_equal({ foo: :foo }, actual.to_h)
       assert_equal :foo, actual.foo
     end
 
     test "open_result failure" do
       actual = Result.open_result do |r|
+        r.bar = :bar
         r.foo = Result.failure(:foo)
       end
       assert actual.failure?
+
       assert_equal :foo, actual.failures[:foo]
+      assert_equal :foo, actual.failures.foo
+      refute actual.failures.key?(:bar)
+
+      assert_equal :foo, actual.failure[:foo]
+      assert_equal :foo, actual.failure.foo
+      assert_equal :bar, actual.failure[:bar]
+      assert_equal :bar, actual.failure.bar
+
       assert_raise(Result::FailureTreatedAsSuccessError) { actual.foo }
     end
 
@@ -352,6 +363,10 @@ module I2w
       assert actual.failure?
       assert_raise(Result::FailureTreatedAsSuccessError) { actual.bar }
       assert_equal :foo, actual.failures[:bar]
+      assert_equal :foo, actual.failures.bar
+
+      assert_equal :foo, actual.failure[:bar]
+      assert_equal :foo, actual.failure.bar
     end
   end
 end
