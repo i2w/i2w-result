@@ -23,8 +23,6 @@ module I2w
         to_hash.each { |key, errs| errs.each { yield(key, _1) } }
       end
 
-      def errors = each.to_a
-
       def add(key, err) = @errors[key.to_sym].push(err)
 
       def to_hash = @errors.dup

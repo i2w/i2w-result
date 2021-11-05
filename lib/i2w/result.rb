@@ -82,7 +82,9 @@ module I2w
 
       def initialize(failure, errors = nil)
         @failure = failure
-        @errors = Errors.new(errors || (@failure.respond_to?(:errors) && @failure.errors) || {})
+        @errors = errors
+        @errors ||= failure.errors if failure.respond_to?(:errors)
+        @errors = Errors.new(errors) unless @errors.respond_to?(:full_messages)
         freeze
       end
 
