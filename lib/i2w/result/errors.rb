@@ -11,9 +11,10 @@ module I2w
 
       def_delegators :@errors, :keys, :key?, :count, :size, :clear, :blank?, :empty?, :any?
 
-      def initialize(errors = {})
+      def initialize(errors = nil)
+        errors ||= {}
         @errors = Hash.new { |hash, key| hash[key] = [] }
-        errors.to_h.each { |key, errs| Array(errs).each { add(key, _1) } }
+        errors.to_hash.each { |key, errs| Array(errs).each { add(key, _1) } }
       end
 
       def each
