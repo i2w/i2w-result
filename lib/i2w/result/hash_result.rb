@@ -7,6 +7,8 @@ module I2w
     # A Result object that stores a bunch on results.  If any is a failure, the whole is a failure
     # Can be used inside a catch block to exit on the first setting of a failure result, see #stop_on_failure
     class HashResult
+      NoArg = Object.new.freeze
+
       def self.call(hash_arg = {}, &block)
         return new(initial_hash: hash_arg) unless block
 

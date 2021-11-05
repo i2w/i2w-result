@@ -12,8 +12,8 @@ module I2w
       assert_equal :val, result.value
       assert_equal :val, result.value_or(:fallback)
       assert result.and_then { |s| s }.success?
-      assert_equal 'got: val', result.and_then { |s| "got: #{s}" }.value
-      assert_equal 'got: val', result.with_success { "got: #{_1.value}" }.with_failure { "nope out: #{_1.failure}" }.value
+      assert_equal 'got: val', result.and_then { |s| "got: #{s}" }
+                                     .or_else { |f| "nope: #{f}" }.value
 
       side_effects = []
       assert_equal :val, result.and_tap { |s| side_effects << "got: #{s}" }.value
@@ -32,11 +32,24 @@ module I2w
       assert_equal [:err, :fallback], result.value_or { [_1.failure, :fallback] }
       assert_raises(Result::FailureTreatedAsSuccessError) { result.value }
       assert result.and_then { |s| "got: #{s}" }.failure?
-      assert_equal 'nope out: err', result.with_success { "got: #{_1.value}" }.with_failure { "nope out: #{_1.failure}" }.value
+      assert_equal 'nope: err', result.and_then { "got: #{_1}" }
+                                      .or_else { "nope: #{_1}" }.value
 
       side_effects = []
       assert result.and_tap { |s| side_effects << "got: #{s}" }.failure?
       assert_equal [], side_effects
+    end
+
+    test 'Result::FailureTreatedAsSuccessError' do
+      exception = begin
+                    Result.wrap { 1 / 0 }.value
+                  rescue Result::Error => e
+                    e
+                  end
+
+      assert_equal Result::FailureTreatedAsSuccessError, exception.class
+      assert exception.failure.is_a?(ZeroDivisionError)
+      assert_equal({ :message => "divided by 0" }, exception.errors)
     end
 
     test 'wrap' do
@@ -131,91 +144,6 @@ module I2w
       refute actual.success?
       assert_equal :problem, actual.failure
       assert_equal ['80', 80], side_effects
-    end
-
-    test 'Result do syntax' do
-      side_effects = []
-
-      num = '80'
-      actual = Result.do do |r|
-        side_effects << num
-        num = r.value! Result[num.to_i]
-        side_effects << num
-        num = r.value! Result[1 + num]
-        side_effects << (num + 100)
-        num / 9
-      end
-
-      assert actual.success?
-      assert_equal 9, actual.value
-      assert_equal ['80', 80, 181], side_effects
-    end
-
-    test 'Result do syntax with failure' do
-      side_effects = []
-
-      num = '80'
-      actual = Result.do do |r|
-        side_effects << num
-        num = r.value! Result[num.to_i]
-        side_effects << num
-        num = r.value! Result.failure(:problem)
-        side_effects << (num + 100)
-        num / 9
-      end
-
-      refute actual.success?
-      assert_equal :problem, actual.failure
-      assert_equal ['80', 80], side_effects
-    end
-
-    class Foo
-      prepend Result::Do
-
-      def self.inherited(subclass)
-        super
-        subclass.prepend(Result::Do)
-      end
-
-      def call(arg)
-        bar = value! process_arg(arg)
-        "success: #{bar}"
-      end
-
-      def process_arg(arg)
-        return Result.success(arg) if arg == :bar
-
-        Result.failure(:must_be_bar)
-      end
-    end
-
-    class DowncaseFoo < Foo
-      def call(arg)
-        arg = value! downcase(arg)
-        super(arg)
-      end
-
-      def downcase(arg)
-        return Result.failure(:must_not_be_baz) if arg == :baz
-
-        Result[arg.to_s.downcase.to_sym]
-      end
-    end
-
-    test 'embedded do syntax' do
-      assert Foo.new.call(:bar).success?
-      assert_equal 'success: bar', Foo.new.call(:bar).value
-
-      refute Foo.new.call(:baz).success?
-      assert_equal :must_be_bar, Foo.new.call(:baz).failure
-    end
-
-    test 'embedded do syntax and inheritance' do
-      assert DowncaseFoo.new.call(:BAR).success?
-      assert_equal 'success: bar', DowncaseFoo.new.call(:bar).value
-
-      refute DowncaseFoo.new.call(:baz).success?
-      assert_equal :must_not_be_baz, DowncaseFoo.new.call(:baz).failure
     end
 
     test 'hash_result failure' do

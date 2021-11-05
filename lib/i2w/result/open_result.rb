@@ -5,7 +5,7 @@ require 'ostruct'
 
 module I2w
   module Result
-    # Just like a HashResult, except you can set arbitrary vaules via = methods, eg.
+    # Just like a HashResult, except you can also set arbitrary values via = methods, eg.
     #
     #   Result.open_result do |r|
     #     r.user              = repo(User).find(id: user_id)
