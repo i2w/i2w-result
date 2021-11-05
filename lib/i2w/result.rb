@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'result/version'
+require_relative 'result/errors'
 require_relative 'result/match'
 require_relative 'result/hash_result'
 require_relative 'result/open_result'
@@ -26,7 +27,7 @@ module I2w
     def wrap
       success yield
     rescue StandardError => e
-      failure e, { message: e.message }
+      failure e, exception: e.message
     end
 
     # returns result if it can be coerced to result, otherwise wrap in Success monad
@@ -53,6 +54,8 @@ module I2w
       def failure = result.failure
 
       def errors = result.errors
+
+      def raise! = raise(failure.is_a?(Exception) ? failure : self)
     end
 
     class Success
@@ -79,7 +82,7 @@ module I2w
 
       def initialize(failure, errors = nil)
         @failure = failure
-        @errors = errors || (@failure.respond_to?(:errors) && @failure.errors) || {}
+        @errors = Errors.new(errors || (@failure.respond_to?(:errors) && @failure.errors) || {})
         freeze
       end
 

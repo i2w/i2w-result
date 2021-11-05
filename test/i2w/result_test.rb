@@ -40,7 +40,7 @@ module I2w
       assert_equal [], side_effects
     end
 
-    test 'Result::FailureTreatedAsSuccessError' do
+    test 'FailureTreatedAsSuccessError wrapping an exception failure' do
       exception = begin
                     Result.wrap { 1 / 0 }.value
                   rescue Result::Error => e
@@ -49,7 +49,27 @@ module I2w
 
       assert_equal Result::FailureTreatedAsSuccessError, exception.class
       assert exception.failure.is_a?(ZeroDivisionError)
-      assert_equal({ :message => "divided by 0" }, exception.errors)
+      assert_equal({ exception: ["divided by 0"] }, exception.errors.to_h)
+
+      assert_raises ZeroDivisionError do
+        exception.raise!
+      end
+    end
+
+    test 'FailureTreatedAsSuccessError for a normal failure' do
+      exception = begin
+                    Result.failure(:boom, foo: 'bar').value
+                  rescue Result::Error => e
+                    e
+                  end
+
+      assert_equal Result::FailureTreatedAsSuccessError, exception.class
+      assert_equal :boom, exception.failure
+      assert_equal({ foo: ["bar"] }, exception.errors.to_h)
+
+      assert_raises Result::FailureTreatedAsSuccessError do
+        exception.raise!
+      end
     end
 
     test 'wrap' do
@@ -60,29 +80,38 @@ module I2w
       result = Result.wrap { 1 / 0 }
 
       assert result.failure.is_a?(ZeroDivisionError)
-      assert_equal({ :message => "divided by 0" }, result.errors)
+      assert_equal({ exception: ["divided by 0"] }, result.errors.to_h)
     end
 
     test 'failure result with errors' do
-      result = Result.failure(:input_invalid, { attribute: ['is required'] })
+      result = Result.failure(:input_invalid, attribute: ['required', 'missing'], foo: 'bar')
 
-      assert_equal({ attribute: ['is required'] }, result.errors)
+      refute result.errors.empty?
+      assert result.errors.any?
+      assert [:attribute, :foo], result.errors.attribute_names
+      assert [:attribute, :foo], result.errors.keys
+      assert_equal 2, result.errors.count
+      assert_equal ['required', 'missing'], result.errors.messages_for(:attribute)
+      assert_equal({ attribute: ['required', 'missing'], foo: ['bar']}, result.errors.to_h)
+      assert_equal [[:attribute, 'required'], [:attribute, 'missing'], [:foo, 'bar']], result.errors.each.to_a
     end
 
     test 'failure object with errors' do
       input = Object.new
-      input.singleton_class.define_method(:errors) { { attribute: ['is required'] } }
+      input.singleton_class.define_method(:errors) do
+        Result::Errors.new(attribute: ['is required', 'missing'], foo: 'bar')
+      end
 
       result = Result.failure(input)
       assert_equal input, result.failure
-      assert_equal({ attribute: ['is required'] }, result.errors)
+      assert_equal ["Attribute is required", "Attribute missing", "Foo bar"], result.errors.full_messages
     end
 
     def pattern_match(result)
       case result
       in :success, success
         "Success: #{success}"
-      in :failure, :input_invalid, { attribute: message }
+      in :failure, :input_invalid, { attribute: [message] }
         "Failure on attr #{message}"
       in :failure, :input_invalid, _
         'Failure: Input Invalid'
@@ -96,7 +125,7 @@ module I2w
     test 'pattern matching' do
       assert_equal pattern_match(Result.success(:val)), 'Success: val'
       assert_equal pattern_match(Result.failure(:input_invalid)), 'Failure: Input Invalid'
-      assert_equal pattern_match(Result.failure(:input_invalid, { attribute: ['foo'] })), 'Failure on attr ["foo"]'
+      assert_equal pattern_match(Result.failure(:input_invalid, { attribute: ['foo'] })), 'Failure on attr foo'
       assert_equal pattern_match(Result.failure(:db_constraint)), 'Failure: db_constraint'
       assert_equal pattern_match(Object.new), 'WAT?'
     end
@@ -104,14 +133,14 @@ module I2w
     def result_match(result)
       Result.match(result) do |on|
         on.success           { |success| "Success: #{success}" }
-        on.failure(:invalid) { |_failure, errors| "Input Invalid: #{errors}" }
+        on.failure(:invalid) { |_failure, errors| "Input Invalid: #{errors.to_a.join(', ')}" }
         on.failure(:db)      { |failure, _errors| "Failure: #{failure}" }
       end
     end
 
     test 'result callback' do
       assert_equal result_match(Result.success(:val)), 'Success: val'
-      assert_equal result_match(Result.failure(:invalid, { foo: ['bar'] })), 'Input Invalid: {:foo=>["bar"]}'
+      assert_equal result_match(Result.failure(:invalid, { foo: ['bar'] })), 'Input Invalid: Foo bar'
       assert_equal result_match(Result.failure(:db)), 'Failure: db'
       assert_raises(Result::NoMatchError) { result_match(Result.failure(:foo)) }
     end
@@ -150,7 +179,7 @@ module I2w
       actual = Result.hash_result do |h|
         h[:foo] = "FOO"
         h[:bar] = Result.success("BAR")
-        h[:baz] = Result.failure("BAZ", [error: "No Baz!"])
+        h[:baz] = Result.failure("BAZ", error: "No Baz!")
         h[:faz] = "FAZ" # not added
         raise 'this will not be reached'
       end
@@ -185,7 +214,7 @@ module I2w
 
       assert_equal :fail, actual.value_or { :fail }
 
-      assert_equal([error: 'No Baz!'], actual.errors)
+      assert_equal(['Error No Baz!'], actual.errors.to_a)
     end
 
     test 'hash_result success' do
