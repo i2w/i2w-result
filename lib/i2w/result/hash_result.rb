@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'methods'
-
 module I2w
   module Result
     # A Result object that stores a bunch on results.  If any is a failure, the whole is a failure

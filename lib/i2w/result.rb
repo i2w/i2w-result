@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 
+require 'active_model/errors'
+require 'active_model/naming'
+require 'active_model/translation'
+
 require_relative 'result/version'
-require_relative 'result/errors'
+require_relative 'result/methods'
 require_relative 'result/match'
 require_relative 'result/hash_result'
 require_relative 'result/open_result'
@@ -76,21 +80,35 @@ module I2w
     end
 
     class Failure
+      extend ActiveModel::Translation
       include Methods
 
       attr_reader :failure, :errors
 
       def initialize(failure, errors = nil)
         @failure = failure
-        @errors = errors
-        @errors ||= failure.errors if failure.respond_to?(:errors)
-        @errors = Errors.new(errors) unless @errors.respond_to?(:full_messages)
+        errors ||= failure.errors if failure.respond_to?(:errors)
+        @errors = convert_errors(errors)
         freeze
       end
 
       def value = raise(FailureTreatedAsSuccessError, self)
 
       def success? = false
+
+      private
+
+      def convert_errors(errors)
+        return errors if errors.respond_to?(:full_messages)
+
+        ActiveModel::Errors.new(self).tap do |errors_obj|
+          if errors.respond_to?(:to_h)
+            errors.to_h.each { |key, errs| Array(errs).each { errors_obj.add(key, _1) } }
+          elsif errors.present?
+            errors_obj.add(:base, errors.to_s)
+          end
+        end
+      end
     end
   end
 end

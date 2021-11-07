@@ -10,8 +10,8 @@ Gem::Specification.new do |s|
   s.email       = ['ian.w.white@gmail.com']
 
   s.homepage    = 'https://github.com/i2w/result'
-  s.summary     = 'A simple monadic result object'
-  s.description = 'i2w-result defines a simple monadic result'
+  s.summary     = 'A monadic result object'
+  s.description = 'i2w-result defines a monadic result'
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
@@ -23,6 +23,7 @@ Gem::Specification.new do |s|
 
   s.files = Dir['{lib}/**/*', 'MIT-LICENSE', 'Rakefile', 'README.md']
 
+  s.add_dependency 'activemodel', '>= 6'
   s.add_development_dependency 'activesupport', '>= 6'
   s.add_development_dependency 'rake', '>= 13.0.3'
 end

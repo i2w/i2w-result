@@ -49,7 +49,7 @@ module I2w
 
       assert_equal Result::FailureTreatedAsSuccessError, exception.class
       assert exception.failure.is_a?(ZeroDivisionError)
-      assert_equal({ exception: ["divided by 0"] }, exception.errors.to_h)
+      assert_equal({ exception: ["divided by 0"] }, exception.errors.to_hash)
 
       assert_raises ZeroDivisionError do
         exception.raise!
@@ -65,7 +65,7 @@ module I2w
 
       assert_equal Result::FailureTreatedAsSuccessError, exception.class
       assert_equal :boom, exception.failure
-      assert_equal({ foo: ["bar"] }, exception.errors.to_h)
+      assert_equal({ foo: ["bar"] }, exception.errors.to_hash)
 
       assert_raises Result::FailureTreatedAsSuccessError do
         exception.raise!
@@ -80,7 +80,7 @@ module I2w
       result = Result.wrap { 1 / 0 }
 
       assert result.failure.is_a?(ZeroDivisionError)
-      assert_equal({ exception: ["divided by 0"] }, result.errors.to_h)
+      assert_equal({ exception: ["divided by 0"] }, result.errors.to_hash)
     end
 
     test 'failure result with errors' do
@@ -89,22 +89,31 @@ module I2w
       refute result.errors.empty?
       assert result.errors.any?
       assert [:attribute, :foo], result.errors.attribute_names
-      assert [:attribute, :foo], result.errors.keys
-      assert_equal 2, result.errors.count
+      assert_equal 3, result.errors.count
       assert_equal ['required', 'missing'], result.errors.messages_for(:attribute)
-      assert_equal({ attribute: ['required', 'missing'], foo: ['bar']}, result.errors.to_h)
-      assert_equal [[:attribute, 'required'], [:attribute, 'missing'], [:foo, 'bar']], result.errors.each.to_a
+      assert_equal({ attribute: ['required', 'missing'], foo: ['bar']}, result.errors.to_hash)
     end
 
-    test 'failure object with errors' do
-      input = Object.new
-      input.singleton_class.define_method(:errors) do
-        Result::Errors.new(attribute: ['is required', 'missing'], foo: 'bar')
-      end
+    class ObjWithErrors
+      extend ActiveModel::Translation
 
+      def errors
+        ActiveModel::Errors.new(self).tap do |errors|
+          errors.add(:attribute, 'is required')
+          errors.add(:attribute, 'missing')
+          errors.add(:foo, 'bar')
+        end
+      end
+    end
+
+    test 'failure(object with errors) uses that objects errors' do
+      input = ObjWithErrors.new
       result = Result.failure(input)
       assert_equal input, result.failure
+      assert_equal 3, result.errors.count
+      assert_equal 3, result.failure.errors.count
       assert_equal ["Attribute is required", "Attribute missing", "Foo bar"], result.errors.full_messages
+      assert_equal ["Attribute is required", "Attribute missing", "Foo bar"], result.failure.errors.full_messages
     end
 
     def pattern_match(result)
