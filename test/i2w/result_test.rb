@@ -52,7 +52,7 @@ module I2w
       assert_equal({ exception: ["divided by 0"] }, exception.errors.to_hash)
 
       assert_raises ZeroDivisionError do
-        exception.raise!
+        exception.raise_failure!
       end
     end
 
@@ -68,7 +68,7 @@ module I2w
       assert_equal({ foo: ["bar"] }, exception.errors.to_hash)
 
       assert_raises Result::FailureTreatedAsSuccessError do
-        exception.raise!
+        exception.raise_failure!
       end
     end
 

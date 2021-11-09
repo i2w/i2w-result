@@ -59,7 +59,8 @@ module I2w
 
       def errors = result.errors
 
-      def raise! = raise(failure.is_a?(Exception) ? failure : self)
+      # raises the failure if the failure is an exception, otherwise re-raise self
+      def raise_failure! = raise(failure.is_a?(Exception) ? failure : self)
     end
 
     class Success
