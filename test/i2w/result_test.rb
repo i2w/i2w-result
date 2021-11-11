@@ -7,8 +7,8 @@ module I2w
 
       assert result.success?
       refute result.failure?
-      assert result.errors.empty?
-      assert result.failure.nil?
+      assert_raises(NoMethodError) { result.errors }
+      assert_raises(NoMethodError) { result.failure }
       assert_equal :val, result.value
       assert_equal :val, result.value_or(:fallback)
       assert result.and_then { |s| s }.success?
@@ -92,6 +92,19 @@ module I2w
       assert_equal 3, result.errors.count
       assert_equal ['required', 'missing'], result.errors.messages_for(:attribute)
       assert_equal({ attribute: ['required', 'missing'], foo: ['bar']}, result.errors.to_hash)
+    end
+
+    test 'failure#backtrace reports where the failure was called' do
+      mod = Module.new do
+        def self.a = b
+        def self.b = c
+        def self.c = Result.failure(:foo)
+      end
+
+      actual = mod.a.backtrace
+      assert actual[0].include?("in `c'")
+      assert actual[1].include?("in `b'")
+      assert actual[2].include?("in `a'")
     end
 
     class ObjWithErrors
@@ -188,7 +201,8 @@ module I2w
       actual = Result.hash_result do |h|
         h[:foo] = "FOO"
         h[:bar] = Result.success("BAR")
-        h[:baz] = Result.failure("BAZ", error: "No Baz!")
+        failure = Result.failure("BAZ", error: "No Baz!")
+        h[:baz] = failure
         h[:faz] = "FAZ" # not added
         raise 'this will not be reached'
       end
@@ -224,6 +238,7 @@ module I2w
       assert_equal :fail, actual.value_or { :fail }
 
       assert_equal(['Error No Baz!'], actual.errors.to_a)
+      assert actual.backtrace[0] != actual.failure_added_backtrace[0]
     end
 
     test 'hash_result success' do
@@ -242,7 +257,8 @@ module I2w
 
       assert_equal({ foo: "FOO", bar: "BAR" }, actual.successes)
       assert_equal({}, actual.failures)
-      assert_nil actual.failure
+      assert_raises(NoMethodError) { actual.failure }
+      assert_raises(NoMethodError) { actual.errors }
 
       assert_equal({ foo: "FOO", bar: "BAR" }, actual.value)
       assert_equal({ foo: "FOO", bar: "BAR" }, actual.to_h)
@@ -258,8 +274,6 @@ module I2w
 
       actual = actual.and_then { :hi }
       assert :hi, actual.value
-
-      assert actual.errors.empty?
     end
 
     test "hash_result[left, right]= stores success on left, failure on right" do

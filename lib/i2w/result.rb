@@ -74,19 +74,16 @@ module I2w
       end
 
       def success? = true
-
-      def failure = nil
-
-      def errors = {}
     end
 
     class Failure
       extend ActiveModel::Translation
       include Methods
 
-      attr_reader :failure, :errors
+      attr_reader :failure, :errors, :backtrace
 
       def initialize(failure, errors = nil)
+        @backtrace = caller(3) # TODO: make configurable on/off
         @failure = failure
         errors ||= failure.errors if failure.respond_to?(:errors)
         @errors = convert_errors(errors)

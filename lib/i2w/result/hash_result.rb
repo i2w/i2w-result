@@ -45,7 +45,10 @@ module I2w
         key = failure_key if result.failure? && failure_key != NoArg
         @hash[key] = result
       ensure
-        throw @throw_token if result.failure? && @throw_token
+        if result.failure?
+          @failure_added_backtrace ||= caller(2)
+          throw @throw_token if @throw_token
+        end
       end
 
       # is the result at the key a failure? or if no key given, does the hash contain a failure?
@@ -66,11 +69,31 @@ module I2w
       alias to_h value
       alias to_hash value
 
-      # failure returns all successful values and failures, but only if there is a failure
-      def failure = failure? ? @hash.transform_values { _1.success? ? _1.value : _1.failure } : nil
+      # failure returns all successful values and failures
+      def failure
+        raise NoMethodError, "undefined method `failure' for success:#{self.class} (NoMethodError)" if success?
+
+        @hash.transform_values { _1.success? ? _1.value : _1.failure }
+      end
 
       # returns the errors for the first failure
-      def errors = failure? ? @hash.values.detect(&:failure?).errors : {}
+      def errors
+        raise NoMethodError, "undefined method `errors' for success:#{self.class} (NoMethodError)" if success?
+
+        @hash.values.detect(&:failure?).errors
+      end
+
+      def backtrace
+        raise NoMethodError, "undefined method `backtrace' for success:#{self.class} (NoMethodError)" if success?
+
+        @hash.values.detect(&:failure?).backtrace
+      end
+
+      def failure_added_backtrace
+        raise NoMethodError, "undefined method `failure_added_backtrace' for success:#{self.class} (NoMethodError)" if success?
+
+        @failure_added_backtrace
+      end
     end
   end
 end
