@@ -11,7 +11,7 @@ module I2w
     class FailureTreatedAsSuccessError < Error
       extend Forwardable
 
-      def_delegators :@result, :failure, :errors, :backtrace, :failure_added_backtrace
+      def_delegators :@result, :failure, :errors
 
       attr_reader :result
 
