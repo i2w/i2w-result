@@ -3,6 +3,7 @@
 require 'active_model/errors'
 require 'active_model/naming'
 require 'active_model/translation'
+require 'active_support/ordered_options'
 
 require_relative 'result/version'
 require_relative 'result/methods'
@@ -11,12 +12,20 @@ require_relative 'result/hash_result'
 require_relative 'result/open_result'
 
 module I2w
-  # Result monad
+  # Result monad, built for rails
   module Result
     extend self
 
+    def self.[](...) = to_result(...)
+
+    def self.config = @config ||= ActiveSupport::OrderedOptions.new
+
+    config.save_backtrace_on_failure = true
+
+    # a successful result
     def success(value) = Success.new(value)
 
+    # a failure result
     def failure(failure, errors = nil) = Failure.new(failure, errors)
 
     # yield the block to Result::HashResult, which returns a Result::HashResult (a result monad with multiple values)
@@ -31,7 +40,7 @@ module I2w
     def wrap
       success yield
     rescue StandardError => e
-      failure e, exception: e.message
+      failure e, e.message
     end
 
     # returns result if it can be coerced to result, otherwise wrap in Success monad
@@ -40,8 +49,6 @@ module I2w
     # yield the block using a simple #success #failure(*failures) DSL
     # return the result of the first matching block or raise NoMatchError
     def match(result, &block) = Match.call(result, &block)
-
-    def self.[](...) = to_result(...)
 
     class Error < RuntimeError; end
 
@@ -83,7 +90,7 @@ module I2w
       attr_reader :failure, :errors, :backtrace
 
       def initialize(failure, errors = nil)
-        @backtrace = caller(3) # TODO: make configurable on/off
+        @backtrace = caller_locations if Result.config.save_backtrace_on_failure
         @failure = failure
         errors ||= failure.errors if failure.respond_to?(:errors)
         @errors = convert_errors(errors)

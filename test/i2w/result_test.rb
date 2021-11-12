@@ -49,7 +49,7 @@ module I2w
 
       assert_equal Result::FailureTreatedAsSuccessError, exception.class
       assert exception.failure.is_a?(ZeroDivisionError)
-      assert_equal({ exception: ["divided by 0"] }, exception.errors.to_hash)
+      assert_equal({ base: ["divided by 0"] }, exception.errors.to_hash)
 
       assert_raises ZeroDivisionError do
         exception.raise_failure!
@@ -80,7 +80,7 @@ module I2w
       result = Result.wrap { 1 / 0 }
 
       assert result.failure.is_a?(ZeroDivisionError)
-      assert_equal({ exception: ["divided by 0"] }, result.errors.to_hash)
+      assert_equal({ base: ["divided by 0"] }, result.errors.to_hash)
     end
 
     test 'failure result with errors' do
@@ -102,9 +102,9 @@ module I2w
       end
 
       actual = mod.a.backtrace
-      assert actual[0].include?("in `c'")
-      assert actual[1].include?("in `b'")
-      assert actual[2].include?("in `a'")
+      assert actual[2].to_s.include?("in `c'")
+      assert actual[3].to_s.include?("in `b'")
+      assert actual[4].to_s.include?("in `a'")
     end
 
     class ObjWithErrors
@@ -133,8 +133,8 @@ module I2w
       case result
       in :success, success
         "Success: #{success}"
-      in :failure, :input_invalid, { attribute: [message] }
-        "Failure on attr #{message}"
+      in :failure, :input_invalid, { attribute: [ { error: error } ] }
+        "Failure on attr #{error}"
       in :failure, :input_invalid, _
         'Failure: Input Invalid'
       in :failure, error, _
@@ -238,7 +238,7 @@ module I2w
       assert_equal :fail, actual.value_or { :fail }
 
       assert_equal(['Error No Baz!'], actual.errors.to_a)
-      assert actual.backtrace[0] != actual.failure_added_backtrace[0]
+      assert actual.backtrace[0].to_s != actual.failure_added_backtrace[0].to_s
     end
 
     test 'hash_result success' do

@@ -7,15 +7,29 @@ module I2w
     class HashResult
       NoArg = Object.new.freeze
 
-      def self.call(hash_arg = {}, &block)
-        return new(initial_hash: hash_arg) unless block
+      class << self
+        def call(hash_arg = {}, &block)
+          return new(hash_arg) unless block
 
-        new(initial_hash: hash_arg).stop_on_failure(&block)
+          new(hash_arg).stop_on_failure(&block)
+        end
+
+        private
+
+        # decorator for instance methods that raises a NoMethodError unless the result is a failure
+        def failure_method(method_name)
+          orig = instance_method(method_name)
+          remove_method(method_name)
+          define_method(method_name) do
+            raise NoMethodError, "undefined method `#{method_name}' for success:#{self.class}" if success?
+            orig.bind(self).call
+          end
+        end
       end
 
       include Methods
 
-      def initialize(initial_hash: {})
+      def initialize(initial_hash = {})
         @hash = {}
         initial_hash.each { set(_1, _2) }
       end
@@ -46,7 +60,8 @@ module I2w
         @hash[key] = result
       ensure
         if result.failure?
-          @failure_added_backtrace ||= caller(2)
+          @first_failure_result ||= result
+          @first_failure_added_backtrace ||= caller_locations if Result.config.save_backtrace_on_failure
           throw @throw_token if @throw_token
         end
       end
@@ -69,31 +84,17 @@ module I2w
       alias to_h value
       alias to_hash value
 
-      # failure returns all successful values and failures
-      def failure
-        raise NoMethodError, "undefined method `failure' for success:#{self.class} (NoMethodError)" if success?
-
-        @hash.transform_values { _1.success? ? _1.value : _1.failure }
-      end
+      # failure returns all successful values and failures as a hash
+      failure_method def failure = @hash.transform_values { _1.success? ? _1.value : _1.failure }
 
       # returns the errors for the first failure
-      def errors
-        raise NoMethodError, "undefined method `errors' for success:#{self.class} (NoMethodError)" if success?
+      failure_method def errors = @first_failure_result.errors
 
-        @hash.values.detect(&:failure?).errors
-      end
+      # returns the backtrace for the first failure
+      failure_method def backtrace = @first_failure_result.backtrace
 
-      def backtrace
-        raise NoMethodError, "undefined method `backtrace' for success:#{self.class} (NoMethodError)" if success?
-
-        @hash.values.detect(&:failure?).backtrace
-      end
-
-      def failure_added_backtrace
-        raise NoMethodError, "undefined method `failure_added_backtrace' for success:#{self.class} (NoMethodError)" if success?
-
-        @failure_added_backtrace
-      end
+      # returns the backtrace for when the first failure waas added to this result
+      failure_method def failure_added_backtrace = @first_failure_added_backtrace
     end
   end
 end

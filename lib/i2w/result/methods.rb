@@ -8,7 +8,7 @@ module I2w
       # return the value if succes, or failure argument, or block called with failure
       def value_or(arg = nil, &block) = success? ? value : (block&.call(self) || arg)
 
-      def deconstruct = success? ? [:success, value] : [:failure, failure, errors.to_hash]
+      def deconstruct = success? ? [:success, value] : [:failure, failure, errors.details]
 
       # if success, return the result of the block called with value, if failure return self
       def and_then = success? ? Result.to_result(yield(value)) : self
