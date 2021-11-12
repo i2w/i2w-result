@@ -235,6 +235,10 @@ module I2w
       assert actual.and_tap { side_effect = :hi }.failure?
       assert_nil side_effect
 
+      side_effect = nil
+      assert actual.or_else { side_effect = :hi }.success?
+      assert :hi, side_effect
+
       assert_equal :fail, actual.value_or { :fail }
 
       assert_equal(['Error No Baz!'], actual.errors.to_a)

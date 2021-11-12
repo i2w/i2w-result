@@ -1,12 +1,10 @@
 # frozen_string_literal: true
 
-require 'active_model/errors'
-require 'active_model/naming'
-require 'active_model/translation'
-require 'active_support/ordered_options'
-
 require_relative 'result/version'
-require_relative 'result/methods'
+require_relative 'result/config'
+require_relative 'result/error'
+require_relative 'result/success'
+require_relative 'result/failure'
 require_relative 'result/match'
 require_relative 'result/hash_result'
 require_relative 'result/open_result'
@@ -14,13 +12,11 @@ require_relative 'result/open_result'
 module I2w
   # Result monad, built for rails
   module Result
-    extend self
+    extend self, Config
 
-    def self.[](...) = to_result(...)
-
-    def self.config = @config ||= ActiveSupport::OrderedOptions.new
-
-    config.save_backtrace_on_failure = true
+    configure do |config|
+      config.save_backtrace_on_failure = true
+    end
 
     # a successful result
     def success(value) = Success.new(value)
@@ -50,70 +46,6 @@ module I2w
     # return the result of the first matching block or raise NoMatchError
     def match(result, &block) = Match.call(result, &block)
 
-    class Error < RuntimeError; end
-
-    class NoMatchError < Error; end
-
-    class FailureTreatedAsSuccessError < Error
-      attr_reader :result
-
-      def initialize(result)
-        super "#value called on failure #{result.failure}"
-        @result = result
-      end
-
-      def failure = result.failure
-
-      def errors = result.errors
-
-      # raises the failure if the failure is an exception, otherwise re-raise self
-      def raise_failure! = raise(failure.is_a?(Exception) ? failure : self)
-    end
-
-    class Success
-      include Methods
-
-      attr_reader :value
-
-      def initialize(value)
-        @value = value
-        freeze
-      end
-
-      def success? = true
-    end
-
-    class Failure
-      extend ActiveModel::Translation
-      include Methods
-
-      attr_reader :failure, :errors, :backtrace
-
-      def initialize(failure, errors = nil)
-        @backtrace = caller_locations if Result.config.save_backtrace_on_failure
-        @failure = failure
-        errors ||= failure.errors if failure.respond_to?(:errors)
-        @errors = convert_errors(errors)
-        freeze
-      end
-
-      def value = raise(FailureTreatedAsSuccessError, self)
-
-      def success? = false
-
-      private
-
-      def convert_errors(errors)
-        return errors if errors.respond_to?(:full_messages)
-
-        ActiveModel::Errors.new(self).tap do |errors_obj|
-          if errors.respond_to?(:to_h)
-            errors.to_h.each { |key, errs| Array(errs).each { errors_obj.add(key, _1) } }
-          elsif errors.present?
-            errors_obj.add(:base, errors.to_s)
-          end
-        end
-      end
-    end
+    def self.[](...) = to_result(...)
   end
 end

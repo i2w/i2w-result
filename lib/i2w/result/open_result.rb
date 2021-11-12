@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative 'hash_result'
-require 'ostruct'
 
 module I2w
   module Result
