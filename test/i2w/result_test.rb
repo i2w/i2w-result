@@ -238,7 +238,7 @@ module I2w
       assert_equal :fail, actual.value_or { :fail }
 
       assert_equal(['Error No Baz!'], actual.errors.to_a)
-      assert actual.backtrace[0].to_s != actual.failure_added_backtrace[0].to_s
+      refute_equal actual.backtrace, actual.failure_added_backtrace
     end
 
     test 'hash_result success' do
