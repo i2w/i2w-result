@@ -81,7 +81,11 @@ module I2w
       def successes = @hash.transform_values { _1.value if _1.success? }.compact
 
       # return the hash of successful values, raises ValueCalledOnFailure if any failures
-      def value = @hash.transform_values { _1.value }
+      def value
+        raise(FailureTreatedAsSuccessError, self) unless success?
+
+        @hash.transform_values { _1.value }
+      end
 
       alias to_h value
       alias to_hash value
