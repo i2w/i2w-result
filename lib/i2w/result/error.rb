@@ -4,31 +4,21 @@ require 'forwardable'
 
 module I2w
   module Result
-    class Error < RuntimeError; end
-
-    class NoMatchError < Error
+    class Error < RuntimeError
       attr_reader :result
 
-      def initialize(result)
-        super "match not found for #{result}"
+      def initialize(result, message)
         @result = result
+        super message
       end
     end
 
+    class NoMatchError < Error
+      def initialize(result) = super(result, "match not found for #{result}")
+    end
+
     class FailureTreatedAsSuccessError < Error
-      extend Forwardable
-
-      def_delegators :@result, :failure, :errors
-
-      attr_reader :result
-
-      def initialize(result)
-        super "#value called on failure #{result.failure}"
-        @result = result
-      end
-
-      # raises the failure if the failure is an exception, otherwise re-raise self
-      def raise_failure! = raise(failure.is_a?(Exception) ? failure : self)
+      def initialize(result) = super(result, "#value called on failure #{result.failure}")
     end
   end
 end

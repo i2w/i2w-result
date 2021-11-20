@@ -48,12 +48,8 @@ module I2w
                   end
 
       assert_equal Result::FailureTreatedAsSuccessError, exception.class
-      assert exception.failure.is_a?(ZeroDivisionError)
-      assert_equal({ base: ["divided by 0"] }, exception.errors.to_hash)
-
-      assert_raises ZeroDivisionError do
-        exception.raise_failure!
-      end
+      assert exception.result.failure.is_a?(ZeroDivisionError)
+      assert_equal({ base: ["divided by 0"] }, exception.result.errors.to_hash)
     end
 
     test 'FailureTreatedAsSuccessError for a normal failure' do
@@ -64,12 +60,8 @@ module I2w
                   end
 
       assert_equal Result::FailureTreatedAsSuccessError, exception.class
-      assert_equal :boom, exception.failure
-      assert_equal({ foo: ["bar"] }, exception.errors.to_hash)
-
-      assert_raises Result::FailureTreatedAsSuccessError do
-        exception.raise_failure!
-      end
+      assert_equal :boom, exception.result.failure
+      assert_equal({ foo: ["bar"] }, exception.result.errors.to_hash)
     end
 
     test 'wrap' do
