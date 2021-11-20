@@ -5,8 +5,11 @@ require_relative 'methods'
 module I2w
   module Result
     # A Result object that stores a bunch on results.  If any is a failure, the whole is a failure
-    # Can be used inside a catch block to exit on the first setting of a failure result, see #stop_on_failure
+    # Can be used to exit (via throw/cath) on the first setting of a failure result, see #stop_on_failure.
+    # This mimics the 'do' notation found in other monadic patterns.
     class HashResult
+      include Methods
+
       NoArg = Object.new.freeze
 
       class << self
@@ -28,8 +31,6 @@ module I2w
           end
         end
       end
-
-      include Methods
 
       def initialize(initial_hash = {})
         @hash = {}
