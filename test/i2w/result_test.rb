@@ -148,6 +148,14 @@ module I2w
       assert_equal result_match(Result.hash_result(key1: 1, key2: Result.failure(:nope))), 'Failure on key2'
     end
 
+    test 'Result.match catch all failure' do
+      actual = Result.match(Result.failure(:foo)) do |on|
+                 on.failure { _1 }
+               end
+
+      assert_equal :foo, actual
+    end
+
     test 'Result.match no match error' do
       actual = assert_raises(Result::NoMatchError) { result_match(Result.failure(:foo)) }
       assert actual.result.failure?

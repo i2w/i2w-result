@@ -25,10 +25,10 @@ module I2w
         end
 
         # if the result is a failure, and optionally is one of the passed failures,
-        # yield with the result(failure, errors, match) and throw that
+        # yield with the result(failure, errors[, match]) and throw that
         def failure(*failures)
           return unless @result.failure?
-          return unless match = failures.detect { @result.match_failure? _1 }
+          return unless failures.none? || (match = failures.detect { @result.match_failure? _1 })
 
           throw @found_match, yield(@result.failure, @result.errors, match)
         end
