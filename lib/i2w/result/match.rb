@@ -6,7 +6,7 @@ module I2w
       def self.call(result)
         catch do |tok|
           yield DSL.new(tok, result)
-          raise NoMatchError
+          raise NoMatchError.new(result)
         end
       end
 
@@ -25,12 +25,12 @@ module I2w
         end
 
         # if the result is a failure, and optionally is one of the passed failures,
-        # yield with the result failure and errors, and throw that
+        # yield with the result(failure, errors, match) and throw that
         def failure(*failures)
           return unless @result.failure?
-          return if failures.any? && !failures.include?(@result.failure)
+          return unless match = failures.detect { @result.match_failure? _1 }
 
-          throw @found_match, yield(@result.failure, @result.errors)
+          throw @found_match, yield(@result.failure, @result.errors, match)
         end
       end
     end

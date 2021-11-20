@@ -26,6 +26,9 @@ module I2w
 
       def success? = false
 
+      # match the argument against our failure using case equality
+      def match_failure?(arg) = arg === failure
+
       private
 
       def convert_errors(errors)

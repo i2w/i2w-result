@@ -25,9 +25,9 @@ module I2w
         def failure_method(method_name)
           orig = instance_method(method_name)
           remove_method(method_name)
-          define_method(method_name) do
+          define_method(method_name) do |*args|
             raise NoMethodError, "undefined method `#{method_name}' for success:#{self.class}" if success?
-            orig.bind(self).call
+            orig.bind(self).call(*args)
           end
         end
       end
@@ -63,8 +63,8 @@ module I2w
         @hash[key] = result
       ensure
         if result.failure?
-          @first_failure_result ||= result
-          @first_failure_added_backtrace ||= caller_locations if Result.config.save_backtrace_on_failure
+          @failure_key ||= key
+          @failure_added_backtrace ||= caller_locations if Result.config.save_backtrace_on_failure
           throw @throw_token if @throw_token
         end
       end
@@ -94,14 +94,23 @@ module I2w
       # failure returns all successful values and failures as a hash
       failure_method def failure = @hash.transform_values { _1.success? ? _1.value : _1.failure }
 
+      # returns the first failure result
+      failure_method def first_failure = @hash[@failure_key]
+
       # returns the errors for the first failure
-      failure_method def errors = @first_failure_result.errors
+      failure_method def errors = @hash[@failure_key].errors
 
       # returns the backtrace for the first failure
-      failure_method def backtrace = @first_failure_result.backtrace
+      failure_method def backtrace = @hash[@failure_key].backtrace
 
       # returns the backtrace for when the first failure waas added to this result
-      failure_method def failure_added_backtrace = @first_failure_added_backtrace
+      failure_method def failure_added_backtrace = @failure_added_backtrace
+
+      # returns the key of the first failure
+      failure_method def first_failure_key = @failure_key
+
+      # return true if argument threequals (using case equality) the failure, or if it equals the key of the failure
+      failure_method def match_failure?(arg) = (arg === @hash[@failure_key]) || (arg == @failure_key)
     end
   end
 end

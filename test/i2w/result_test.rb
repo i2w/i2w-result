@@ -129,42 +129,29 @@ module I2w
       assert_equal ["Attribute is required", "Attribute missing", "Foo bar"], result.failure.errors.full_messages
     end
 
-    def pattern_match(result)
-      case result
-      in :success, success
-        "Success: #{success}"
-      in :failure, :input_invalid, { attribute: [ { error: error } ] }
-        "Failure on attr #{error}"
-      in :failure, :input_invalid, _
-        'Failure: Input Invalid'
-      in :failure, error, _
-        "Failure: #{error}"
-      else
-        'WAT?'
-      end
-    end
-
-    test 'pattern matching' do
-      assert_equal pattern_match(Result.success(:val)), 'Success: val'
-      assert_equal pattern_match(Result.failure(:input_invalid)), 'Failure: Input Invalid'
-      assert_equal pattern_match(Result.failure(:input_invalid, { attribute: ['foo'] })), 'Failure on attr foo'
-      assert_equal pattern_match(Result.failure(:db_constraint)), 'Failure: db_constraint'
-      assert_equal pattern_match(Object.new), 'WAT?'
-    end
-
     def result_match(result)
       Result.match(result) do |on|
-        on.success           { |success| "Success: #{success}" }
-        on.failure(:invalid) { |_failure, errors| "Input Invalid: #{errors.to_a.join(', ')}" }
-        on.failure(:db)      { |failure, _errors| "Failure: #{failure}" }
+        on.success                    { |success| "Success: #{success}" }
+        on.failure(:invalid)          { |_failure, errors| "Input Invalid: #{errors.to_a.join(', ')}" }
+        on.failure(:db)               { |failure, _errors| "Failure: #{failure}" }
+        on.failure(ZeroDivisionError) { "Failure/0" }
+        on.failure(:key1, :key2)      { |_failure, _errors, matched| "Failure on #{matched}" }
       end
     end
 
-    test 'result callback' do
+    test 'Result.match examples' do
       assert_equal result_match(Result.success(:val)), 'Success: val'
       assert_equal result_match(Result.failure(:invalid, { foo: ['bar'] })), 'Input Invalid: Foo bar'
       assert_equal result_match(Result.failure(:db)), 'Failure: db'
-      assert_raises(Result::NoMatchError) { result_match(Result.failure(:foo)) }
+      assert_equal result_match(Result.wrap { 1/0 }), 'Failure/0'
+      assert_equal result_match(Result.open_result { _1.key1 = Result.failure(:nope) }), 'Failure on key1'
+      assert_equal result_match(Result.hash_result(key1: 1, key2: Result.failure(:nope))), 'Failure on key2'
+    end
+
+    test 'Result.match no match error' do
+      actual = assert_raises(Result::NoMatchError) { result_match(Result.failure(:foo)) }
+      assert actual.result.failure?
+      assert_equal :foo, actual.result.failure
     end
 
     test 'chaining syntax success' do
@@ -218,6 +205,8 @@ module I2w
       assert_equal({ foo: "FOO", bar: "BAR" }, actual.successes)
       assert_equal({ baz: "BAZ" }, actual.failures)
       assert_equal({ foo: "FOO", bar: "BAR", baz: "BAZ"}, actual.failure)
+      assert_equal "BAZ", actual.first_failure.failure
+      assert_equal :baz, actual.first_failure_key
 
       assert_raise(Result::FailureTreatedAsSuccessError) { actual.value }
       assert_raise(Result::FailureTreatedAsSuccessError) { actual.to_h }

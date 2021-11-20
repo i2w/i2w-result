@@ -6,7 +6,14 @@ module I2w
   module Result
     class Error < RuntimeError; end
 
-    class NoMatchError < Error; end
+    class NoMatchError < Error
+      attr_reader :result
+
+      def initialize(result)
+        super "match not found for #{result}"
+        @result = result
+      end
+    end
 
     class FailureTreatedAsSuccessError < Error
       extend Forwardable
