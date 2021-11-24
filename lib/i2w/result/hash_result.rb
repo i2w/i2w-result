@@ -76,10 +76,16 @@ module I2w
       def success?(key = NoArg) = key.eql?(NoArg) ? @hash.values.all?(&:success?) : @hash.fetch(key).success?
 
       # return the hash of unwrapped failures only
-      def failures = @hash.transform_values { _1.failure if _1.failure? }.compact
+      def failures = failure_results.transform_values(&:failure)
 
       # return the hash of unwrapped successes only
-      def successes = @hash.transform_values { _1.value if _1.success? }.compact
+      def successes = success_results.transform_values(&:value)
+
+      # return a hash of the failure results
+      def failure_results = @hash.select { _2.failure? }
+
+      # return a hash of the success results
+      def success_results = @hash.select { _2.success? }
 
       # return the hash of successful values, raises ValueCalledOnFailure if any failures
       def value

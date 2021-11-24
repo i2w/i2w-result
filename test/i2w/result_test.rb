@@ -288,6 +288,8 @@ module I2w
 
       assert_equal({ f1: 1, f2: 2, s3: 3}, actual.failure)
       assert_equal({ f1: 1, f2: 2 }, actual.failures)
+      assert_equal [:f1, :f2], actual.failure_results.keys
+      assert_equal [:s3], actual.success_results.keys
     end
 
     test "hash_result with hash arg returns HashResult for arg" do
