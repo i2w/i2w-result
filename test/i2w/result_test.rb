@@ -118,6 +118,7 @@ module I2w
       assert_instance_of Result::ValueCalledOnFailureError, exception
       assert_instance_of Result::FailureError, exception.cause
       assert_instance_of ZeroDivisionError, exception.cause.cause
+      assert_instance_of String, Marshal.dump(exception)
     end
 
     class ObjWithErrors
