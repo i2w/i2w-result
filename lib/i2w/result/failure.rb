@@ -22,9 +22,7 @@ module I2w
         freeze
       end
 
-      def value
-        raise FailureTreatedAsSuccessError.new(self), cause: failure.is_a?(Exception) ? failure : nil
-      end
+      def value = raise(FailureTreatedAsSuccessError, self)
 
       def success? = false
 
