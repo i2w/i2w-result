@@ -15,19 +15,21 @@ module I2w
       attr_reader :failure, :errors, :backtrace
 
       def initialize(failure, errors = nil)
-        @backtrace = caller if Result.config.save_backtrace_on_failure
+        @backtrace = caller
         @failure = failure
         errors ||= failure.errors if failure.respond_to?(:errors)
         @errors = convert_errors(errors)
         freeze
       end
 
-      def value = raise(FailureTreatedAsSuccessError, self)
+      def value = raise(to_exception)
 
       def success? = false
 
       # match the argument against our failure using case equality
       def match_failure?(arg) = arg === failure
+
+      def to_exception = FailureError.new(self, cause: failure.is_a?(Exception) ? failure : nil)
 
       private
 

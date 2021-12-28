@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'no_arg'
 require_relative 'result/version'
-require_relative 'result/config'
 require_relative 'result/error'
 require_relative 'result/success'
 require_relative 'result/failure'
@@ -12,11 +12,7 @@ require_relative 'result/open_result'
 module I2w
   # Result monad, built for rails
   module Result
-    extend self, Config
-
-    configure do |config|
-      config.save_backtrace_on_failure = true
-    end
+    extend self
 
     # a successful result
     def success(value) = Success.new(value)

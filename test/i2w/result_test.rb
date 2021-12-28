@@ -30,7 +30,7 @@ module I2w
       assert_equal :fallback, result.value_or(:fallback)
       assert_equal :fallback, result.value_or { :fallback }
       assert_equal [:err, :fallback], result.value_or { [_1.failure, :fallback] }
-      assert_raises(Result::FailureTreatedAsSuccessError) { result.value }
+      assert_raises(Result::FailureError) { result.value }
       assert result.and_then { |s| "got: #{s}" }.failure?
       assert_equal 'nope: err', result.and_then { "got: #{_1}" }
                                       .or_else { "nope: #{_1}" }.value
@@ -40,27 +40,26 @@ module I2w
       assert_equal [], side_effects
     end
 
-    test 'FailureTreatedAsSuccessError wrapping an exception failure' do
+    test 'FailureError wrapping an exception failure' do
       exception = begin
                     Result.wrap { 1 / 0 }.value
                   rescue Result::Error => e
                     e
                   end
 
-      assert_equal Result::FailureTreatedAsSuccessError, exception.class
+      assert_equal Result::FailureError, exception.class
       assert exception.cause.is_a?(ZeroDivisionError)
     end
 
-    test 'FailureTreatedAsSuccessError for a normal failure' do
+    test 'FailureError for a normal failure' do
       exception = begin
                     Result.failure(:boom, foo: 'bar').value
                   rescue Result::Error => e
                     e
                   end
 
-      assert_equal Result::FailureTreatedAsSuccessError, exception.class
-      assert exception.cause.is_a?(Result::FailureError)
-      assert_equal "#value called on #<I2w::Result::Failure:failure boom, {:foo=>[{:error=>\"bar\"}]}>", exception.message
+      assert_equal Result::FailureError, exception.class
+      assert_equal "#<I2w::Result::Failure:failure boom, {:foo=>[{:error=>\"bar\"}]}>", exception.message
     end
 
     test 'wrap' do
@@ -70,7 +69,7 @@ module I2w
 
       result = Result.wrap { 1 / 0 }
 
-      assert result.failure.is_a?(ZeroDivisionError)
+      assert_instance_of ZeroDivisionError, result.failure
       assert_equal({ base: ["divided by 0"] }, result.errors.to_hash)
     end
 
@@ -96,6 +95,29 @@ module I2w
       assert actual[2].include?("in `c'")
       assert actual[3].include?("in `b'")
       assert actual[4].include?("in `a'")
+    end
+
+    test 'nested exceptions are reachable via #cause' do
+      mod = Module.new do
+        def self.a
+          Result.open_result do |r|
+            r.calculation = b
+          end
+        end
+
+        def self.b = Result.wrap { 1 / 0 }
+      end
+
+      result = mod.a
+      assert result.failure?
+
+      exception = assert_raises(Result::FailureError) do
+        result.value
+      end
+
+      assert_instance_of Result::FailureError, exception
+      assert_instance_of Result::FailureError, exception.cause
+      assert_instance_of ZeroDivisionError, exception.cause.cause
     end
 
     class ObjWithErrors
@@ -206,9 +228,9 @@ module I2w
       assert_equal "BAZ", actual.first_failure.failure
       assert_equal :baz, actual.first_failure_key
 
-      assert_raise(Result::FailureTreatedAsSuccessError) { actual.value }
-      assert_raise(Result::FailureTreatedAsSuccessError) { actual.to_h }
-      assert_raise(Result::FailureTreatedAsSuccessError) { actual.to_hash }
+      assert_raise(Result::FailureError) { actual.value }
+      assert_raise(Result::FailureError) { actual.to_h }
+      assert_raise(Result::FailureError) { actual.to_hash }
 
       side_effect = nil
       assert actual.and_then { side_effect = :hi }.failure?
@@ -229,7 +251,7 @@ module I2w
       assert_equal :fail, actual.value_or { :fail }
 
       assert_equal(['Error No Baz!'], actual.errors.to_a)
-      refute_equal actual.backtrace, actual.failure_added_backtrace
+      refute_equal actual.backtrace, actual.first_failure.backtrace
     end
 
     test 'hash_result success' do
@@ -325,7 +347,7 @@ module I2w
       assert_equal :bar, actual.failure[:bar]
       assert_equal :bar, actual.failure.bar
 
-      assert_raise(Result::FailureTreatedAsSuccessError) { actual.foo }
+      assert_raise(Result::FailureError) { actual.foo }
     end
 
     test "open_result left, right syntax" do
@@ -334,7 +356,7 @@ module I2w
       end
 
       assert actual.failure?
-      assert_raise(Result::FailureTreatedAsSuccessError) { actual.bar }
+      assert_raise(Result::FailureError) { actual.bar }
       assert_equal :foo, actual.failures[:bar]
       assert_equal :foo, actual.failures.bar
 
