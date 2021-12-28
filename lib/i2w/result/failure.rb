@@ -22,14 +22,20 @@ module I2w
         freeze
       end
 
-      def value = raise(to_exception)
+      def value
+        raise ValueCalledOnFailureError.new(self), cause: (failure.is_a?(Exception) ? failure : nil)
+      end
 
       def success? = false
 
       # match the argument against our failure using case equality
       def match_failure?(arg) = arg === failure
 
-      def to_exception = FailureError.new(self, cause: failure.is_a?(Exception) ? failure : nil)
+      def to_exception
+        raise FailureError.new(self), cause: (failure.is_a?(Exception) ? failure : nil)
+      rescue FailureError => exception
+        exception
+      end
 
       private
 

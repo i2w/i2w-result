@@ -8,21 +8,22 @@ module I2w
     end
 
     class NoMatchError < Error
-      def initialize(result) = super("match not found for #{result}")
-    end
-
-    class FailureError < Error
-      attr_reader :cause
-
-      def initialize(failure, cause: nil)
-        super failure.to_s
-        set_backtrace failure.backtrace
-        @cause = cause
+      def initialize(result)
+        super "match not found for #{result}"
       end
     end
 
-    class FailureAddedError < FailureError; end
+    class FailureError < Error
+      def initialize(failure)
+        super failure.to_s
+        set_backtrace failure.backtrace
+      end
+    end
 
-    class ValueCalledOnFailureError < FailureError; end
+    class ValueCalledOnFailureError < Error
+      def initialize(failure)
+        super "#value called on #{failure}"
+      end
+    end
   end
 end

@@ -79,19 +79,20 @@ module I2w
 
       # return the hash of successful values, raises ValueCalledOnFailure if any failures
       def value
-        raise to_exception unless success?
+        return @hash.transform_values { _1.value } if success?
 
-        @hash.transform_values { _1.value }
+        raise ValueCalledOnFailureError.new(self), cause: first_failure_to_exception
       end
 
       alias to_h value
       alias to_hash value
 
-      # to_exception returns this failure as an exception, with #cause set to the first failure
       def to_exception
         raise NoMethodError, "undefined method `to_exception' for #{self.class}:success" if success?
 
-        FailureError.new(self, cause: first_failure&.to_exception)
+        raise FailureError.new(self), cause: first_failure_to_exception
+      rescue FailureError => exception
+        exception
       end
 
       # failure returns all successful values and failures as a hash
@@ -134,6 +135,13 @@ module I2w
         raise NoMethodError, "undefined method `match_failure?' for #{self.class}:success" if success?
 
         (arg === @hash[@failure_key]) || (arg == @failure_key)
+      end
+
+      private
+
+      def first_failure_to_exception
+        return first_failure if first_failure.is_a?(Exception)
+        return first_failure.to_exception if first_failure.respond_to?(:to_exception)
       end
     end
   end
