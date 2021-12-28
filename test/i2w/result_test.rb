@@ -59,7 +59,7 @@ module I2w
                   end
 
       assert_equal Result::FailureTreatedAsSuccessError, exception.class
-      assert_nil exception.cause
+      assert exception.cause.is_a?(Result::FailureError)
       assert_equal "#value called on #<I2w::Result::Failure:failure boom, {:foo=>[{:error=>\"bar\"}]}>", exception.message
     end
 
