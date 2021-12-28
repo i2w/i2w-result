@@ -48,8 +48,7 @@ module I2w
                   end
 
       assert_equal Result::FailureTreatedAsSuccessError, exception.class
-      assert exception.result.failure.is_a?(ZeroDivisionError)
-      assert_equal({ base: ["divided by 0"] }, exception.result.errors.to_hash)
+      assert exception.cause.is_a?(ZeroDivisionError)
     end
 
     test 'FailureTreatedAsSuccessError for a normal failure' do
@@ -60,8 +59,8 @@ module I2w
                   end
 
       assert_equal Result::FailureTreatedAsSuccessError, exception.class
-      assert_equal :boom, exception.result.failure
-      assert_equal({ foo: ["bar"] }, exception.result.errors.to_hash)
+      assert_nil exception.cause
+      assert_equal "#value called on #<I2w::Result::Failure:failure boom, {:foo=>[{:error=>\"bar\"}]}>", exception.message
     end
 
     test 'wrap' do
@@ -94,9 +93,9 @@ module I2w
       end
 
       actual = mod.a.backtrace
-      assert actual[2].to_s.include?("in `c'")
-      assert actual[3].to_s.include?("in `b'")
-      assert actual[4].to_s.include?("in `a'")
+      assert actual[2].include?("in `c'")
+      assert actual[3].include?("in `b'")
+      assert actual[4].include?("in `a'")
     end
 
     class ObjWithErrors
@@ -150,8 +149,7 @@ module I2w
 
     test 'Result.match no match error' do
       actual = assert_raises(Result::NoMatchError) { result_match(Result.failure(:foo)) }
-      assert actual.result.failure?
-      assert_equal :foo, actual.result.failure
+      assert_equal "match not found for #<I2w::Result::Failure:failure foo, {}>", actual.message
     end
 
     test 'chaining syntax success' do

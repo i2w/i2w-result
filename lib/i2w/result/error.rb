@@ -5,10 +5,10 @@ require 'forwardable'
 module I2w
   module Result
     class Error < RuntimeError
-      attr_reader :result
+      attr_reader :cause
 
       def initialize(result, message)
-        @result = result
+        @cause = result.failure if result.failure? && result.failure.is_a?(Exception)
         super message
       end
     end
@@ -18,7 +18,7 @@ module I2w
     end
 
     class FailureTreatedAsSuccessError < Error
-      def initialize(result) = super(result, "#value called on failure #{result.failure}")
+      def initialize(result) = super(result, "#value called on #{result}")
     end
   end
 end

@@ -20,6 +20,10 @@ module I2w
       def and_tap = success? ? tap { yield(value) } : self
 
       def to_result = self
+
+      def to_s
+        "#<#{self.class.name}:#{success? ? "success #{value})" : "failure #{failure}, #{errors.details}"}>"
+      end
     end
   end
 end

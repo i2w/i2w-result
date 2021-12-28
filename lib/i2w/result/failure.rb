@@ -15,7 +15,7 @@ module I2w
       attr_reader :failure, :errors, :backtrace
 
       def initialize(failure, errors = nil)
-        @backtrace = caller_locations if Result.config.save_backtrace_on_failure
+        @backtrace = caller if Result.config.save_backtrace_on_failure
         @failure = failure
         errors ||= failure.errors if failure.respond_to?(:errors)
         @errors = convert_errors(errors)
