@@ -7,7 +7,7 @@ module I2w
     class Error < RuntimeError
     end
 
-    class NoMatchError < Error
+    class MatchNotFoundError < Error
       attr_reader :result
 
       def initialize(result)

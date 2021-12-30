@@ -6,7 +6,7 @@ module I2w
       def self.call(result)
         catch do |tok|
           yield DSL.new(tok, result)
-          raise NoMatchError.new(result)
+          raise MatchNotFoundError.new(result)
         end
       end
 

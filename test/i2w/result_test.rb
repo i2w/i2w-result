@@ -187,7 +187,7 @@ module I2w
     end
 
     test 'Result.match no match error' do
-      actual = assert_raises(Result::NoMatchError) { result_match(Result.failure(:foo)) }
+      actual = assert_raises(Result::MatchNotFoundError) { result_match(Result.failure(:foo)) }
       assert_equal "match not found for #<I2w::Result::Failure:failure foo, {}>", actual.message
     end
 
