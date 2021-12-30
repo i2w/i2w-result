@@ -8,24 +8,27 @@ module I2w
     end
 
     class NoMatchError < Error
+      attr_reader :result
+
       def initialize(result)
+        @result = result
         super "match not found for #{result}"
       end
     end
 
     class FailureError < Error
-      attr_reader :failure_class, :failure_errors
+      attr_reader :result
 
-      def initialize(result, message: result.to_s, backtrace: result.backtrace)
+      def initialize(result, message = result.to_s)
         super message
-        @failure_class = result.failure.class
-        set_backtrace backtrace
+        @result = result
+        set_backtrace result.backtrace
       end
     end
 
     class ValueCalledOnFailureError < FailureError
       def initialize(result)
-        super result, message: "#value called on #{result}"
+        super result, "#value called on #{result}"
       end
     end
   end

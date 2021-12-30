@@ -111,24 +111,16 @@ module I2w
       result = mod.a
       assert result.failure?
 
-      exception = result.to_exception
-      assert_equal I2w::Result::OpenResult::Value, exception.failure_class
-      assert_equal "Failure added to I2w::Result::OpenResult at :calculation", exception.message
-
-      # ensure errors are dumpable
-      assert_instance_of String, Marshal.dump(exception)
-
       exception = assert_raises(Result::ValueCalledOnFailureError) do
         result.value
       end
 
-      assert_instance_of Result::ValueCalledOnFailureError, exception
-      assert_equal I2w::Result::OpenResult::Value, exception.failure_class
+      assert_equal result, exception.result
       assert_match(/#value called on/, exception.message)
 
       exception = exception.cause
       assert_instance_of Result::FailureError, exception
-      assert_equal ZeroDivisionError, exception.failure_class
+      assert_equal result.first_failure, exception.result
 
       exception = exception.cause
       assert_instance_of ZeroDivisionError, exception

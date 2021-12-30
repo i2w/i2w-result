@@ -31,10 +31,11 @@ module I2w
       # match the argument against our failure using case equality
       def match_failure?(arg) = arg === failure
 
+      # return an exception with the failure as its cause if it is an exception
       def to_exception
         raise FailureError.new(self), cause: (failure.is_a?(Exception) ? failure : nil)
-      rescue FailureError => exception
-        exception
+      rescue FailureError => e
+        e
       end
 
       private
