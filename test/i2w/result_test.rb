@@ -105,7 +105,9 @@ module I2w
           end
         end
 
-        def self.b = Result.wrap { 1 / 0 }
+        def self.b
+          Result.wrap { 1 / 0 }
+        end
       end
 
       result = mod.a
@@ -117,13 +119,19 @@ module I2w
 
       assert_equal result, exception.result
       assert_match(/#value called on/, exception.message)
+      assert_match(/:in `block in a'/, exception.backtrace[2])
 
       exception = exception.cause
       assert_instance_of Result::FailureError, exception
       assert_equal result.first_failure, exception.result
+      assert_match(/:in `b'/, exception.backtrace[4])
+      assert_match(/:in `block in a'/, exception.backtrace[5])
 
       exception = exception.cause
       assert_instance_of ZeroDivisionError, exception
+      assert_match(/:in `block in b'/, exception.backtrace[1])
+      assert_match(/:in `b'/, exception.backtrace[3])
+      assert_match(/:in `block in a'/, exception.backtrace[4])
 
       exception = exception.cause
       assert_nil exception
