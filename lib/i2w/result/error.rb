@@ -14,15 +14,18 @@ module I2w
     end
 
     class FailureError < Error
-      def initialize(failure)
-        super failure.to_s
-        set_backtrace failure.backtrace
+      attr_reader :failure_class, :failure_errors
+
+      def initialize(result, message: result.to_s, backtrace: result.backtrace)
+        super message
+        @failure_class = result.failure.class
+        set_backtrace backtrace
       end
     end
 
-    class ValueCalledOnFailureError < Error
-      def initialize(failure)
-        super "#value called on #{failure}"
+    class ValueCalledOnFailureError < FailureError
+      def initialize(result)
+        super result, message: "#value called on #{result}"
       end
     end
   end

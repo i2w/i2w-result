@@ -90,7 +90,8 @@ module I2w
       def to_exception
         raise NoMethodError, "undefined method `to_exception' for #{self.class}:success" if success?
 
-        raise FailureError.new(self), cause: first_failure_to_exception
+        raise FailureError.new(self, message: "Failure added to #{self.class} at :#{first_failure_key}"),
+              cause: first_failure_to_exception
       rescue FailureError => exception
         exception
       end
