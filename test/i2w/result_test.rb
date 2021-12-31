@@ -117,6 +117,9 @@ module I2w
         result.value
       end
 
+      assert result.match_failure?(:calculation)
+      assert result.match_failure?(ZeroDivisionError)
+
       assert_equal result, exception.result
       assert_match(/#value called on/, exception.message)
       assert_match(/:in `block in a'/, exception.backtrace[2])

@@ -136,7 +136,7 @@ module I2w
       def match_failure?(arg)
         raise NoMethodError, "undefined method `match_failure?' for #{self.class}:success" if success?
 
-        (arg === @hash[@failure_key]) || (arg == @failure_key)
+        arg == first_failure_key || first_failure.match_failure?(arg)
       end
     end
   end
