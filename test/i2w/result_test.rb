@@ -42,7 +42,7 @@ module I2w
 
     test 'ValueCalledOnFailureError wrapping an exception failure' do
       exception = begin
-                    Result.wrap { 1 / 0 }.value
+                    Result.to_result { 1 / 0 }.value
                   rescue Result::Error => e
                     e
                   end
@@ -62,12 +62,12 @@ module I2w
       assert_equal "#value called on #<I2w::Result::Failure:failure boom, {:foo=>[{:error=>\"bar\"}]}>", exception.message
     end
 
-    test 'wrap' do
-      result = Result.wrap { 1 + 3 }
+    test '.to_result(&block)' do
+      result = Result.to_result { 1 + 3 }
 
       assert_equal 4, result.value
 
-      result = Result.wrap { 1 / 0 }
+      result = Result.to_result { 1 / 0 }
 
       assert_instance_of ZeroDivisionError, result.failure
       assert_equal({ base: ["divided by 0"] }, result.errors.to_hash)
@@ -106,7 +106,7 @@ module I2w
         end
 
         def self.b
-          Result.wrap { 1 / 0 }
+          Result.to_result { 1 / 0 }
         end
       end
 
@@ -176,7 +176,7 @@ module I2w
       assert_equal result_match(Result.success(:val)), 'Success: val'
       assert_equal result_match(Result.failure(:invalid, { foo: ['bar'] })), 'Input Invalid: Foo bar'
       assert_equal result_match(Result.failure(:db)), 'Failure: db'
-      assert_equal result_match(Result.wrap { 1/0 }), 'Failure/0'
+      assert_equal result_match(Result.to_result { 1/0 }), 'Failure/0'
       assert_equal result_match(Result.open_result { _1.key1 = Result.failure(:nope) }), 'Failure on key1'
       assert_equal result_match(Result.hash_result(key1: 1, key2: Result.failure(:nope))), 'Failure on key2'
     end

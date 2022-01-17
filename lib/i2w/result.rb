@@ -28,15 +28,14 @@ module I2w
     # similar to hash_result, but allows get/set via method access
     def open_result(...) = OpenResult.call(...)
 
-    # yield the block, and return success, but if any exceptions occur return a failure wrapping the exception
-    def wrap
-      success yield
+    # returns result if it can be coerced to result, otherwise wrap in Success monad,
+    # if a block is given, yield the result and rescue any errors as failures
+    def to_result(obj = nil)
+      obj = yield if block_given?
+      obj.respond_to?(:to_result) ? obj.to_result : success(obj)
     rescue StandardError => e
       failure e, e.message
     end
-
-    # returns result if it can be coerced to result, otherwise wrap in Success monad
-    def to_result(obj) = obj.respond_to?(:to_result) ? obj.to_result : success(obj)
 
     # yield the block using a simple #success #failure(*failures) DSL
     # return the result of the first matching block or raise NoMatchError
