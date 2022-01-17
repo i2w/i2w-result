@@ -73,6 +73,24 @@ module I2w
       assert_equal({ base: ["divided by 0"] }, result.errors.to_hash)
     end
 
+    test 'RescueAsFailure' do
+      rescue_some = RescueAsFailure.new(ZeroDivisionError => -> { 'you broke it' })
+      rescue_some.add('KeyError') { { _1.key => 'was not there'} }
+
+      assert_raises(NameError) { rescue_some.call { foo } }
+
+      result = rescue_some.call { 1 / 0 }
+      assert_instance_of ZeroDivisionError, result.failure
+      assert_equal({ base: ['you broke it'] }, result.errors.to_hash)
+
+      result = rescue_some.call { {}.fetch(:foo) }
+      assert_instance_of KeyError, result.failure
+      assert_equal({ foo: ['was not there'] }, result.errors.to_hash)
+
+      result = rescue_some.call { 'foo' }
+      assert 'foo', result.value
+    end
+
     test 'failure result with errors' do
       result = Result.failure(:input_invalid, attribute: ['required', 'missing'], foo: 'bar')
 
@@ -127,14 +145,14 @@ module I2w
       exception = exception.cause
       assert_instance_of Result::FailureError, exception
       assert_equal result.first_failure, exception.result
-      assert_match(/:in `b'/, exception.backtrace[4])
-      assert_match(/:in `block in a'/, exception.backtrace[5])
+      assert_match(/:in `b'/, exception.backtrace[5])
+      assert_match(/:in `block in a'/, exception.backtrace[6])
 
       exception = exception.cause
       assert_instance_of ZeroDivisionError, exception
       assert_match(/:in `block in b'/, exception.backtrace[1])
-      assert_match(/:in `b'/, exception.backtrace[3])
-      assert_match(/:in `block in a'/, exception.backtrace[4])
+      assert_match(/:in `b'/, exception.backtrace[4])
+      assert_match(/:in `block in a'/, exception.backtrace[5])
 
       exception = exception.cause
       assert_nil exception

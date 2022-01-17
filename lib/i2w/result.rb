@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'no_arg'
+require_relative 'rescue_as_failure'
 require_relative 'result/version'
 require_relative 'result/error'
 require_relative 'result/success'
@@ -30,11 +31,9 @@ module I2w
 
     # returns result if it can be coerced to result, otherwise wrap in Success monad,
     # if a block is given, yield the result and rescue any errors as failures
-    def to_result(obj = nil)
-      obj = yield if block_given?
+    def to_result(obj = nil, &block)
+      obj = RescueAsFailure.all.call(&block) if block
       obj.respond_to?(:to_result) ? obj.to_result : success(obj)
-    rescue StandardError => e
-      failure e, e.message
     end
 
     # yield the block using a simple #success #failure(*failures) DSL
