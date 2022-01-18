@@ -40,7 +40,7 @@ module I2w
     # return the result of the first matching block or raise NoMatchError
     def match(result, &block) = Match.call(result, &block)
 
-
-    def self.[](obj) = to_result(obj)
+    # shortcut to wrap an object in a result
+    def self.[](obj) = Result.to_result(obj)
   end
 end
