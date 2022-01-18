@@ -33,13 +33,14 @@ module I2w
     # if a block is given, yield the result and rescue any errors as failures
     def to_result(obj = nil, &block)
       obj = RescueAsFailure.all.call(&block) if block
-      obj.respond_to?(:to_result) ? obj.to_result : success(obj)
+      self[obj]
     end
 
     # yield the block using a simple #success #failure(*failures) DSL
     # return the result of the first matching block or raise NoMatchError
     def match(result, &block) = Match.call(result, &block)
 
-    def self.[](...) = to_result(...)
+    # wrap the argument in success, unless the object can be converted #to_result
+    def self.[](obj) = obj.respond_to?(:to_result) ? obj.to_result : success(obj)
   end
 end

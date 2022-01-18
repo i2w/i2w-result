@@ -67,6 +67,10 @@ module I2w
 
       assert_equal 4, result.value
 
+      result = Result.to_result { Result.success(4) }
+
+      assert_equal 4, result.value
+
       result = Result.to_result { 1 / 0 }
 
       assert_instance_of ZeroDivisionError, result.failure

@@ -21,7 +21,7 @@ module I2w
     end
 
     def call
-      Result.success yield
+      Result[yield]
     rescue => exception
       if error = error_for_exception(exception)
         Result.failure(exception, error)
