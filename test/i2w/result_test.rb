@@ -64,15 +64,12 @@ module I2w
 
     test '.to_result(&block)' do
       result = Result.to_result { 1 + 3 }
-
       assert_equal 4, result.value
 
       result = Result.to_result { Result.success(4) }
-
       assert_equal 4, result.value
 
       result = Result.to_result { 1 / 0 }
-
       assert_instance_of ZeroDivisionError, result.failure
       assert_equal({ base: ["divided by 0"] }, result.errors.to_hash)
     end
@@ -404,6 +401,28 @@ module I2w
 
       assert_equal :foo, actual.failure[:bar]
       assert_equal :foo, actual.failure.bar
+    end
+
+    test "hash_result ||= and setting nil" do
+      actual = Result.hash_result do
+        _1[:foo] = "foo"
+        _1[:bar] = "bar"
+        _1[:foo] ||= "FOO"
+        _1[:bar] = nil
+        _1[:bar] ||= "BAR"
+      end
+      assert_equal({foo: "foo", bar: "BAR"}, actual.to_hash)
+    end
+
+    test "open_result ||= and setting nil" do
+      actual = Result.open_result do
+        _1.foo = "foo"
+        _1.bar = "bar"
+        _1.bar = nil
+        _1.bar ||= "BAR"
+        _1.foo ||= "FOO"
+      end
+      assert_equal({foo: "foo", bar: "BAR"}, actual.to_hash)
     end
   end
 end

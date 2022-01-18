@@ -17,7 +17,7 @@ module I2w
         last = method.to_s[-1]
         if last == '=' && args.length == 1
           self[method.to_s[0..-2].to_sym] = args.first
-        elsif !%[! ?].include?(last) && @hash.key?(method)
+        elsif !%[! ?].include?(last)
           self[method]
         else
           super
@@ -38,9 +38,9 @@ module I2w
           freeze
         end
 
-        def respond_to_missing?(method, ...) = key?(method)
+        def respond_to_missing?(method, ...) = true
 
-        def method_missing(method, *args) = (key?(method) && args.none?) ? self[method] : super
+        def method_missing(method, *args) = args.none? ? self[method] : super
       end
     end
   end

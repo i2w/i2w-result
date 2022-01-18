@@ -35,7 +35,8 @@ module I2w
       end
 
       # return the successful value of the result at the key, raises ValueCalledOnFailure if it is a failure
-      def [](key) = @hash[key].value
+      # return nil if the key is not present
+      def [](key) = @hash[key]&.value
 
       # set the result, if two keys given, the left is set for success, right for failure
       def []=(*key, value)
