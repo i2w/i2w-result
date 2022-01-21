@@ -9,6 +9,7 @@ require_relative 'result/failure'
 require_relative 'result/match'
 require_relative 'result/hash_result'
 require_relative 'result/open_result'
+require_relative 'result/array_result'
 
 module I2w
   # Result monad, built for rails
@@ -28,6 +29,11 @@ module I2w
 
     # similar to hash_result, but allows get/set via method access
     def open_result(...) = OpenResult.call(...)
+
+    # array result represents an array of results, it is #success? when all elements are #success?
+    # Similar in API to #hash_result, by default the first failure added to the array will cause the block to
+    # return early, but you can add multiple failures by passing them, or #push-ing them
+    def array_result(...) = ArrayResult.call(...)
 
     # returns result if it can be coerced to result, otherwise wrap in Success monad,
     # if a block is given, yield the result and rescue any errors as failures

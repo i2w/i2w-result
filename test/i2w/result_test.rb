@@ -424,5 +424,17 @@ module I2w
       end
       assert_equal({foo: "foo", bar: "BAR"}, actual.to_hash)
     end
+
+    test "array_result success" do
+      actual = Result.array_result(:foo) do |r|
+        r << :bar << :baz
+      end
+
+      assert actual.success?
+      assert_equal [:foo, :bar, :baz], actual.to_a
+
+      foo, *barz = actual
+      assert_equal [:foo, [:bar, :baz]], [foo, barz]
+    end
   end
 end

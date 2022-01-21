@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require_relative 'methods'
+require_relative 'failure_method'
+require_relative 'stop_on_failure'
 
 module I2w
   module Result
@@ -8,30 +10,13 @@ module I2w
     # Can be used to exit (via throw/catch) on the first setting of a failure result, see #stop_on_failure.
     # This mimics the 'do' notation found in other monadic patterns.
     class HashResult
+      extend FailureMethod
       include Methods
-
-      class << self
-        def call(hash_arg = {}, &block)
-          return new(hash_arg) unless block
-
-          new(hash_arg).stop_on_failure(&block)
-        end
-      end
+      include StopOnFailure
 
       def initialize(initial_hash = {})
         @hash = {}
         initial_hash.each { set(_1, _2) }
-      end
-
-      def stop_on_failure
-        catch do |token|
-          prev_throw_token, @throw_token = @throw_token, token
-          @throw_token = token
-          yield self
-        ensure
-          @throw_token = prev_throw_token
-        end
-        self
       end
 
       # return the successful value of the result at the key, raises ValueCalledOnFailure if it is a failure
@@ -49,11 +34,7 @@ module I2w
         key = failure_key if result.failure? && failure_key != NoArg
         @hash[key] = result
       ensure
-        if result.failure?
-          @failure_key ||= key
-          @backtrace ||= caller
-          throw @throw_token if @throw_token
-        end
+        handle_failure(result, key) if result.failure?
       end
 
       # is the result at the key a failure? or if no key given, does the hash contain a failure?
@@ -62,9 +43,7 @@ module I2w
       end
 
       # is the result at the key success? or if no key given, is the entire hash a success?
-      def success?(key = NoArg)
-        key.eql?(NoArg) ? @hash.values.all?(&:success?) : @hash.fetch(key).success?
-      end
+      def success?(...) = !failure?(...)
 
       # return the hash of unwrapped failures only
       def failures = failure_results.transform_values(&:failure)
@@ -88,56 +67,38 @@ module I2w
       alias to_h value
       alias to_hash value
 
-      # to_exception returns an exception with first_failure as its cause
-      def to_exception
-        raise NoMethodError, "undefined method `to_exception' for #{self.class}:success" if success?
+      # failure returns all successful values and failures as a hash
+      failure_method def failure = @hash.transform_values { _1.success? ? _1.value : _1.failure }
 
+      # returns the first failure result
+      failure_method def first_failure = @hash[@failure_key]
+
+      # returns the errors for the first failure
+      failure_method def errors = @hash[@failure_key].errors
+
+      # returns the backtrace for when the first failure was added to the hash
+      failure_method def backtrace = @backtrace
+
+      # returns the key of the first failure
+      failure_method def first_failure_key = @failure_key
+
+      # return true if argument threequals (using case equality) the failure, or if it equals the key of the failure
+      failure_method def match_failure?(arg) = (arg == first_failure_key || first_failure.match_failure?(arg))
+
+      # to_exception returns an exception with first_failure as its cause
+      failure_method def to_exception
         message = "Failure :#{first_failure_key} added to #{self.class}"
         raise FailureError.new(self, message), cause: first_failure.to_exception
       rescue FailureError => e
         e
       end
 
-      # failure returns all successful values and failures as a hash
-      def failure
-        raise NoMethodError, "undefined method `failure' for #{self.class}:success" if success?
+      private
 
-        @hash.transform_values { _1.success? ? _1.value : _1.failure }
-      end
-
-      # returns the first failure result
-      def first_failure
-        raise NoMethodError, "undefined method `first_failure' for #{self.class}:success" if success?
-
-        @hash[@failure_key]
-      end
-
-      # returns the errors for the first failure
-      def errors
-        raise NoMethodError, "undefined method `errors' for #{self.class}:success" if success?
-
-        @hash[@failure_key].errors
-      end
-
-      # returns the backtrace for when the first failure was added to the hash
-      def backtrace
-        raise NoMethodError, "undefined method `backtrace' for #{self.class}:success" if success?
-
-        @backtrace
-      end
-
-      # returns the key of the first failure
-      def first_failure_key
-        raise NoMethodError, "undefined method `first_failure_key' for #{self.class}:success" if success?
-
-        @failure_key
-      end
-
-      # return true if argument threequals (using case equality) the failure, or if it equals the key of the failure
-      def match_failure?(arg)
-        raise NoMethodError, "undefined method `match_failure?' for #{self.class}:success" if success?
-
-        arg == first_failure_key || first_failure.match_failure?(arg)
+      def handle_failure(result, key)
+        @failure_key ||= key
+        @backtrace ||= caller(2)
+        super(result)
       end
     end
   end
