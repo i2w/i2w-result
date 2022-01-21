@@ -59,31 +59,33 @@ module I2w
       def value
         return @array.map(&:value) if success?
 
-        raise ValueCalledOnFailureError.new(self), cause: first_failure.to_exception
+        raise ValueCalledOnFailureError.new(self), cause: first_failure_result.to_exception
       end
 
       alias to_a value
       alias to_ary value
 
       # failure returns all successful values and failures as an array
-      failure_method def failure = @array.transform_values { _1.success? ? _1.value : _1.failure }
+      failure_method def failure = @array.map { _1.success? ? _1.value : _1.failure }
 
       # returns the first failure result
-      failure_method def first_failure = @first_failure
+      failure_method def first_failure_result = @first_failure
+
+      failure_method def first_failure = first_failure_result.failure
 
       # returns the errors for the first failure
-      failure_method def errors = first_failure.errors
+      failure_method def errors = first_failure_result.errors
 
       # returns the backtrace for when the first failure was added
       failure_method def backtrace = @backtrace
 
       # return true if argument threequals (using case equality) the failure, or if it equals the key of the failure
-      failure_method def match_failure?(arg) = first_failure.match_failure?(arg)
+      failure_method def match_failure?(arg) = first_failure_result.match_failure?(arg)
 
       # to_exception returns an exception with first_failure as its cause
       failure_method def to_exception
         message = "Failure added to #{self.class}"
-        raise FailureError.new(self, message), cause: first_failure.to_exception
+        raise FailureError.new(self, message), cause: first_failure_result.to_exception
       rescue FailureError => e
         e
       end

@@ -145,7 +145,7 @@ module I2w
 
       exception = exception.cause
       assert_instance_of Result::FailureError, exception
-      assert_equal result.first_failure, exception.result
+      assert_equal result.first_failure_result, exception.result
       assert_match(/:in `b'/, exception.backtrace[5])
       assert_match(/:in `block in a'/, exception.backtrace[6])
 
@@ -264,7 +264,7 @@ module I2w
       assert_equal({ foo: "FOO", bar: "BAR" }, actual.successes)
       assert_equal({ baz: "BAZ" }, actual.failures)
       assert_equal({ foo: "FOO", bar: "BAR", baz: "BAZ"}, actual.failure)
-      assert_equal "BAZ", actual.first_failure.failure
+      assert_equal "BAZ", actual.first_failure
       assert_equal :baz, actual.first_failure_key
 
       assert_raise(Result::ValueCalledOnFailureError) { actual.value }
@@ -290,7 +290,7 @@ module I2w
       assert_equal :fail, actual.value_or { :fail }
 
       assert_equal(['Error No Baz!'], actual.errors.to_a)
-      refute_equal actual.backtrace, actual.first_failure.backtrace
+      refute_equal actual.backtrace, actual.first_failure_result.backtrace
     end
 
     test 'hash_result success' do
@@ -398,6 +398,7 @@ module I2w
       assert_raise(Result::ValueCalledOnFailureError) { actual.bar }
       assert_equal :foo, actual.failures[:bar]
       assert_equal :foo, actual.failures.bar
+      assert_equal :foo, actual.first_failure
 
       assert_equal :foo, actual.failure[:bar]
       assert_equal :foo, actual.failure.bar
@@ -425,9 +426,9 @@ module I2w
       assert_equal({foo: "foo", bar: "BAR"}, actual.to_hash)
     end
 
-    test "array_result success" do
+    test "array_result example" do
       actual = Result.array_result(:foo) do |r|
-        r << :bar << :baz
+        r << Result.success(:bar) << :baz
       end
 
       assert actual.success?
@@ -435,6 +436,16 @@ module I2w
 
       foo, *barz = actual
       assert_equal [:foo, [:bar, :baz]], [foo, barz]
+
+      actual.push Result.failure(:faz)
+
+      assert actual.failure?
+      assert_equal [:foo, :bar, :baz, :faz], actual.failure
+      assert_equal :faz, actual.first_failure
+
+      assert_raises Result::ValueCalledOnFailureError do
+        _foo, *_rest = actual
+      end
     end
   end
 end
