@@ -11,11 +11,18 @@ module I2w
 
       include Methods
       include StopOnFailure
+      include Enumerable
 
       def initialize(*ary)
         @array = []
         concat(ary)
       end
+
+      def initialize_copy(source)
+        @array = source.results
+      end
+
+      delegate :each, to: :value
 
       def <<(element)
         @array << element_to_result(element)
@@ -37,11 +44,42 @@ module I2w
         self
       end
 
+      def clear
+        @first_failure = nil
+        @array.clear
+        self
+      end
+
+      def replace(ary)
+        clear
+        concat ary
+      end
+
+      def pop
+        elements = to_a
+        elements.pop.tap { replace elements }
+      end
+
+      def shift
+        elements = to_a
+        elements.shift.tap { replace elements }
+      end
+
+      def delete(element)
+        elements = to_a
+        elements.delete(element).tap { replace elements }
+      end
+
+      def last = @array.last.value
+
       # true if any of our elements is a #failure?
       def failure? = @array.any?(&:failure?)
 
       # true if all our elements are #success?
       def success? = !failure?
+
+      # return the underlying results in a normal array
+      def results = @array.dup
 
       # return an array of the failure results
       def failure_results = @array.select(&:failure?)

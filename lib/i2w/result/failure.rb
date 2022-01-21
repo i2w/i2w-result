@@ -27,7 +27,6 @@ module I2w
       end
 
       alias to_ary value
-      alias to_hash value
 
       def success? = false
 

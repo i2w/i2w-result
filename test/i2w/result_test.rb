@@ -437,6 +437,12 @@ module I2w
       foo, *barz = actual
       assert_equal [:foo, [:bar, :baz]], [foo, barz]
 
+      duplicate = actual.dup
+
+      assert_equal :baz, duplicate.pop
+      assert_equal [:foo, :bar], duplicate.to_a
+      refute_equal actual.to_a, duplicate.to_a
+
       actual.push Result.failure(:faz)
 
       assert actual.failure?
@@ -444,8 +450,21 @@ module I2w
       assert_equal :faz, actual.first_failure
 
       assert_raises Result::ValueCalledOnFailureError do
+        actual.pop
+      end
+
+      assert_raises Result::ValueCalledOnFailureError do
         _foo, *_rest = actual
       end
+
+      assert_raises Result::ValueCalledOnFailureError do
+        _foo, *_rest = Result.failure(:foo)
+      end
+
+      foo, *middle, faz = actual.results
+      assert foo.success?
+      assert middle.all? &:success?
+      assert faz.failure?
     end
   end
 end

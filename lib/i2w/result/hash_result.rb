@@ -19,6 +19,10 @@ module I2w
         initial_hash.each { set(_1, _2) }
       end
 
+      def initialize_copy(source)
+        @hash = source.results
+      end
+
       # return the successful value of the result at the key, raises ValueCalledOnFailure if it is a failure
       # return nil if the key is not present
       def [](key) = @hash[key]&.value
@@ -50,6 +54,9 @@ module I2w
 
       # return the hash of unwrapped successes only
       def successes = success_results.transform_values(&:value)
+
+      # return a normal hash of the underlying results
+      def results = @hash.dup
 
       # return a hash of the failure results
       def failure_results = @hash.select { _2.failure? }
