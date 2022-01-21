@@ -21,6 +21,8 @@ module I2w
 
       def to_result = self
 
+      def results = [self]
+
       def to_s
         "#<#{self.class.name}:#{success? ? "success #{value})" : "failure #{failure}, #{errors.details}"}>"
       end
