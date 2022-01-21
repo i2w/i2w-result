@@ -26,6 +26,9 @@ module I2w
         raise ValueCalledOnFailureError.new(self), cause: (failure.is_a?(Exception) ? failure : nil)
       end
 
+      alias to_ary value
+      alias to_hash value
+
       def success? = false
 
       # match the argument against our failure using case equality
