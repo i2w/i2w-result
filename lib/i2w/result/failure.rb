@@ -5,11 +5,11 @@ require 'active_model/naming'
 require 'active_model/translation'
 
 require_relative 'methods'
+require_relative 'errors_wrapper'
 
 module I2w
   module Result
     class Failure
-      extend ActiveModel::Translation
       include Methods
 
       attr_reader :failure, :errors, :backtrace
@@ -45,7 +45,7 @@ module I2w
       def convert_errors(errors)
         return errors if errors.respond_to?(:full_messages)
 
-        ActiveModel::Errors.new(self).tap do |errors_obj|
+        ActiveModel::Errors.new(ErrorsWrapper.new(failure)).tap do |errors_obj|
           if errors.respond_to?(:to_h)
             errors.to_h.each { |key, errs| Array(errs).each { errors_obj.add(key, _1) } }
           elsif errors.present?

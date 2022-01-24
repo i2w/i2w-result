@@ -103,6 +103,12 @@ module I2w
       assert_equal({ attribute: ['required', 'missing'], foo: ['bar']}, result.errors.to_hash)
     end
 
+    test 'errors which rely on I18n' do
+      actual = Result.failure(:nope, foo: :blank)
+
+      assert_equal ["Foo translation missing: en.activemodel.errors.models.i2w/result/failure/errors_wrapper.attributes.foo.blank"], actual.errors.full_messages
+    end
+
     test 'failure#backtrace reports where the failure was called' do
       mod = Module.new do
         def self.a = b
