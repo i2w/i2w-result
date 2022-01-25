@@ -74,6 +74,15 @@ module I2w
       assert_equal({ base: ["divided by 0"] }, result.errors.to_hash)
     end
 
+    test '.value(object) returns object.value if object is a result, or the object' do
+      assert_equal :foo, Result.value(:foo)
+      assert_equal :foo, Result.value(Result.to_result { :foo })
+      assert_equal :foo, Result.value(Result.success(:foo))
+
+      assert_raises(Result::ValueCalledOnFailureError) { Result.value(Result.to_result { Result.failure(:foo) }) }
+      assert_raises(Result::ValueCalledOnFailureError) { Result.value(Result.failure(:foo)) }
+    end
+
     test 'RescueAsFailure' do
       rescue_some = RescueAsFailure.new(ZeroDivisionError => -> { 'you broke it' })
       rescue_some.add('KeyError') { { _1.key => 'was not there'} }

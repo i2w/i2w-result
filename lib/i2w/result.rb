@@ -46,6 +46,9 @@ module I2w
     # return the result of the first matching block or raise NoMatchError
     def match(result, &block) = Match.call(result, &block)
 
+    # lift the wrapped result value, or return the argument if it is not a result
+    def value(object) = to_result(object).value
+
     # shortcut to wrap an object in a result
     def self.[](obj) = Result.to_result(obj)
   end
