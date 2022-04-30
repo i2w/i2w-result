@@ -330,6 +330,8 @@ module I2w
       assert_equal({ foo: "FOO", bar: "BAR" }, actual.value)
       assert_equal({ foo: "FOO", bar: "BAR" }, actual.to_h)
       assert_equal({ foo: "FOO", bar: "BAR" }, actual.to_hash)
+      assert_equal({ foo: "FOO" }, actual.slice(:foo))
+      assert_equal({ bar: "BAR" }, actual.except(:foo))
 
       side_effect = nil
       refute actual.and_then { side_effect = :hi }.failure?
@@ -383,6 +385,8 @@ module I2w
       assert_equal :foo, actual.value.foo
       assert_equal({ foo: :foo }, actual.to_h)
       assert_equal :foo, actual.foo
+      assert_equal({ foo: :foo }, actual.slice(:foo))
+      assert_equal({}, actual.except(:foo))
     end
 
     test "open_result failure" do

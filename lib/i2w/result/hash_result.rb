@@ -23,6 +23,8 @@ module I2w
         @hash = source.results
       end
 
+      delegate :slice, :except, to: :value
+
       # return the successful value of the result at the key, raises ValueCalledOnFailure if it is a failure
       # return nil if the key is not present
       def [](key) = @hash[key]&.value
